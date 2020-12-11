@@ -87,6 +87,7 @@ app.post("/singup",function(req,res){
 
 app.post("/contactus",function(req,res){
 
+    mailOptions.to = emailAdmin;
     mailOptions.subject = req.body.userTitle;
     mailOptions.text = "from: "+req.body.userName+"\nemail: "+req.body.userEmail + "\n\n" +req.body.userSubject;
 
