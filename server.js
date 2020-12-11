@@ -7,13 +7,15 @@ var fs = require('fs');
 var path = require('path');
 var nodemailer = require('nodemailer');
 
+var emailAdmin = 'ofir.rahamim@e.braude.ac.il';     //******change username
+
 var transporter = nodemailer.createTransport({
     host:'smtp.office365.com',
     port: 587,
     secure: false,
     auth:{
-        user: 'ofir.rahamim@e.braude.ac.il',  
-        pass: 'WoWO6438'
+        user: emailAdmin,  
+        pass: ''    //************* password for email
     },
     tls: {
         rejectUnauthorized: false
@@ -21,8 +23,8 @@ var transporter = nodemailer.createTransport({
 });
 
 var mailOptions = {
-    from: 'ofir.rahamim@e.braude.ac.il',
-    to: 'ofir.rahamim@e.braude.ac.il',
+    from: emailAdmin,
+    to: emailAdmin,
     subject: "",
     text: ""
 };
