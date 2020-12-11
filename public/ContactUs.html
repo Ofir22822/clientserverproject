@@ -1,0 +1,117 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Contact us</title>
+    <!--<link href="StyleSheet1.css" rel="stylesheet" />-->
+    <script src="JavaScript.js"></script>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <!-- Popper JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</head>
+<body class="bg-light">
+
+    <div class="modal fade" id="myModal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Message Details</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-success">
+                        Sending message success! <i class="fas fa-check-circle"></i>
+                    </p>
+                    <div class="form-group m-0">
+                        <label class="font-weight-bold"> Name: </label>
+                        <span id="mdlName"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="font-weight-bold">Email address: </label>
+                        <span id="mdlEmail"></span>
+                    </div>
+                    <div class="form-group m-0">
+                        <label class="font-weight-bold"> Title: </label>
+                        <span id="mdlTitle"></span>
+                    </div>
+                    <div class="form-group">
+                        <label class="font-weight-bold"> Message: </label>
+                        <br />
+                        <span id="mdlSubject"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="container" class="container mt-5">
+        <div id="main" class="m-auto">
+
+            <div class="card border-info m-auto mb-3" style="max-width: 60rem;">
+                <div class="card-header">
+                    <h3 class="card-title m-0">Contact us</h3>
+                </div>
+                <div class="card-body pl-5 pr-5">
+                    <div class="row">
+                        <div class="col-6">
+                            <form method="POST" id="formContact" name="formContact" action="/contactus" onsubmit="">
+                                <div class="form-group">
+                                    <label>Name</label>
+                                    <input type="text" class="form-control" id="userName" name="userName" placeholder="Enter name">
+                                </div>
+                                <div class="form-group">
+                                    <label>Email address</label>
+                                    <input type="email" class="form-control" id="userEmail" name="userEmail" placeholder="Enter email">
+                                </div>
+                                <label>Contact us concering</label>
+                                <div class="form-group">
+                                    <select id="userTitle" name="userTitle" class="custom-select">
+                                        <option value="0" selected disabled>Select title message</option>
+                                        <option value="Login problem">Login problem</option>
+                                        <option value="Register problem">Register problem</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="exampleTextarea">Example textarea</label>
+                                    <textarea class="form-control" id="userSubject" name="userSubject" rows="5" placeholder="Enter messgae subject"></textarea>
+                                </div>
+                                <div class="text-center">
+                                    <button type="submit" class="btn btn-info" value="Submit" onclick="contactSubmitCheck()">Submit</button>
+                                    <div id="msgError" class="text-danger"></div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <h2>Support</h2>
+                                <a href="mailto:support@example.com">Contact support</a>
+                            </div>
+                            <div style="text-align:center;">
+                                <img src="contact.png" style="margin:auto; width:5vw; min-width:150px;" />
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+
+            </div>
+        </div>
+        <div id="footer"></div>
+    </div>
+
+</body>
+</html>
