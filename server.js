@@ -7,6 +7,7 @@ var fs = require('fs');
 var path = require('path');
 var nodemailer = require('nodemailer');
 
+var port = process.env.PORT || 8080;
 var emailAdmin = 'ofir.rahamim@e.braude.ac.il';     //******change username
 
 var transporter = nodemailer.createTransport({
@@ -104,4 +105,7 @@ app.post("/contactus",function(req,res){
 
 })
 
-app.listen(8080)
+app.listen(port, () => {
+	console.log('App listening on port %d!', port);
+});
+
