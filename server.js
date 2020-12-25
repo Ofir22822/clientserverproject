@@ -63,17 +63,14 @@ app.post('/recapche', function (req, res) {
     res.send(grecaptcha.getResponse(req.param('recapche')));
 
     // Some pseudo server code:
-    http.on('POST', (request, response) => {
-        const recaptchaResponse = request.body['g-recaptcha-response']
-    
-        googleRecaptcha.verify({response: recaptchaResponse}, (error) => {
+
+        const recaptchaResponse = req.body['g-recaptcha-response'];
+        googleRecaptcha.verify({res : recaptchaResponse}, (error) => {
         if (error) {
-            return response.send({isHuman: false})
-        }
-    
-        return response.send({isHuman: true})
+            return res.send({isHuman: false})
+        } 
+        return res.send({isHuman: true})
         })
-    })
 
 })
 
