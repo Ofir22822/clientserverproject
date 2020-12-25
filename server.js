@@ -52,6 +52,10 @@ app.get('/contactus', function (req, res) {
     res.sendFile(__dirname+"/public/contactus.html",);
 })
 
+app.get('/recapche', function (req, res) {  
+    res.sendFile(__dirname+"/public/recapche.html",);
+})
+
 app.get('/getAllData', function (req, res) {  
     var rawdata = fs.readFileSync('data.json');
     var jsondata = JSON.parse(rawdata);
