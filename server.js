@@ -57,7 +57,7 @@ app.get('/recapche', function (req, res) {
 })
 
 app.post('/recapche', function (req, res) {  
-    res.send(g-recaptcha-response);
+    res.send(grecaptcha.getResponse(req.param('recapche')));
 })
 
 app.get('/getAllData', function (req, res) {  
