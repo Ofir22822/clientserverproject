@@ -3,6 +3,20 @@
   <head>
     <title>reCAPTCHA demo: Simple page</title>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+  
+  <script>
+    function backend(){
+      var response = grecaptcha.getResponse();
+      $.ajax({
+        type: "POST",
+        url: 'https://www.google.com/recaptcha/api/siteverify',
+        data: {"secret": "6Le8GRQaAAAAAF0pX_Rp7IaErjS4GSR_MkaPEeRx", "response": response, "remoteip": "localhost"},
+        contentType: 'application/x-www-form-urlencoded',
+        success: function(data){console.log(data);}
+      });
+    }
+  </script>
+  
   </head>
   <body>
 
