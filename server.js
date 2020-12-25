@@ -56,6 +56,10 @@ app.get('/recapche', function (req, res) {
     res.sendFile(__dirname+"/public/recapche.html",);
 })
 
+app.post('/recapche', function (req, res) {  
+    res.send(g-recaptcha-response);
+})
+
 app.get('/getAllData', function (req, res) {  
     var rawdata = fs.readFileSync('data.json');
     var jsondata = JSON.parse(rawdata);
