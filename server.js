@@ -60,7 +60,7 @@ app.get('/recapche', function (req, res) {
 })
 
 app.post('/recapche', function (req, res) {  
-    res.send(grecaptcha.getResponse(req.param('recapche')));
+    //res.send(grecaptcha.getResponse(req.param('recapche')));
 
     // Some pseudo server code:
 
