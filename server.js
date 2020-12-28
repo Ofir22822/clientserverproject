@@ -73,18 +73,18 @@ http.on('POST', (request, response) => {
 */
 
 app.post('/recapche', function (req, res) {  
-    res.send(req.body['g-recaptcha-response']);
+    //res.send(req.body['g-recaptcha-response']);
 
     // Some pseudo server code:
-/*
-        const recaptchaResponse = req.body['g-recaptcha-response'];
+
+        var recaptchaResponse = req.body['g-recaptcha-response'];
         googleRecaptcha.verify({res : recaptchaResponse}, (error) => {
         if (error) {
             return res.send(error+{isHuman: false})
         } 
         return res.send({isHuman: true})
         })
-*/
+
 })
 
 app.get('/getAllData', function (req, res) {  
