@@ -8,7 +8,7 @@ var path = require('path');
 var nodemailer = require('nodemailer');
 
 const GoogleRecaptcha = require('google-recaptcha')
-const googleRecaptcha = new GoogleRecaptcha({secret: 'RECAPTCHA_SECRET_KEY'})
+const googleRecaptcha = new GoogleRecaptcha({secret: '6Le8GRQaAAAAAF0pX_Rp7IaErjS4GSR_MkaPEeRx'})
 
 var port = process.env.PORT || 8080;
 var emailAdmin = 'ofir.rahamim@e.braude.ac.il';     //******change username
