@@ -78,7 +78,7 @@ app.post('/recapche', function (req, res) {
     // Some pseudo server code:
 
         var recaptchaResponse = req.body['g-recaptcha-response'];
-        googleRecaptcha.verify({res : recaptchaResponse}, (error) => {
+        googleRecaptcha.verify({recaptchaResponse}, (error) => {
         if (error) {
             return res.send(error+{isHuman: false})
         } 
