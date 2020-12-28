@@ -64,10 +64,10 @@ app.post('/recapche', function (req, res) {
 
     // Some pseudo server code:
 
-        const recaptchaResponse = req.body.g-recaptcha-response;
+        const recaptchaResponse = req.param('g-recaptcha-response');
         googleRecaptchaObj.verify({res : recaptchaResponse}, (error) => {
         if (error) {
-            return res.send(error + " 2 " +{isHuman: false})
+            return res.send(error+ " 2 " +{isHuman: false})
         } 
         return res.send({isHuman: true})
         })
