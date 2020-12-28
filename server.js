@@ -58,7 +58,7 @@ app.get('/contactus', function (req, res) {
 app.get('/recapche', function (req, res) {  
     res.sendFile(__dirname+"/public/recapche.html",);
 })
-
+/*
 http.on('POST', (request, response) => {
     const recaptchaResponse = request.body['g-recaptcha-response']
   
@@ -70,13 +70,13 @@ http.on('POST', (request, response) => {
       return response.send({isHuman: true})
     })
   })
+*/
 
-/*
 app.post('/recapche', function (req, res) {  
-    //res.send(grecaptcha.getResponse(req.param('recapche')));
+    res.send(req.body['g-recaptcha-response']);
 
     // Some pseudo server code:
-
+/*
         const recaptchaResponse = req.body['g-recaptcha-response'];
         googleRecaptcha.verify({res : recaptchaResponse}, (error) => {
         if (error) {
@@ -84,9 +84,9 @@ app.post('/recapche', function (req, res) {
         } 
         return res.send({isHuman: true})
         })
-
-})
 */
+})
+
 app.get('/getAllData', function (req, res) {  
     var rawdata = fs.readFileSync('data.json');
     var jsondata = JSON.parse(rawdata);
