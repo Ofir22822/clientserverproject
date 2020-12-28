@@ -1,5 +1,5 @@
-var express = require('express')
-var app = express()
+var express = require('express');
+var app = express();
 var bodyParser = require('body-parser')
 var http = require('https');
 var url = require('url');
@@ -8,7 +8,7 @@ var path = require('path');
 var nodemailer = require('nodemailer');
 
 const GoogleRecaptcha = require('google-recaptcha')
-const googleRecaptchaObj = new GoogleRecaptcha({secret: '6Le8GRQaAAAAAF0pX_Rp7IaErjS4GSR_MkaPEeRx'})
+const googleRecaptcha = new GoogleRecaptcha({secret: '6Le8GRQaAAAAAF0pX_Rp7IaErjS4GSR_MkaPEeRx'})
 
 var port = process.env.PORT || 8080;
 var emailAdmin = 'ofir.rahamim@e.braude.ac.il';     //******change username
@@ -59,21 +59,34 @@ app.get('/recapche', function (req, res) {
     res.sendFile(__dirname+"/public/recapche.html",);
 })
 
+http.on('POST', (request, response) => {
+    const recaptchaResponse = request.body['g-recaptcha-response']
+  
+    googleRecaptcha.verify({response: recaptchaResponse}, (error) => {
+      if (error) {
+        return response.send({isHuman: false})
+      }
+  
+      return response.send({isHuman: true})
+    })
+  })
+
+/*
 app.post('/recapche', function (req, res) {  
     //res.send(grecaptcha.getResponse(req.param('recapche')));
 
     // Some pseudo server code:
 
-        const recaptchaResponse = req.param('g-recaptcha-response');
-        googleRecaptchaObj.verify({res : recaptchaResponse}, (error) => {
+        const recaptchaResponse = req.body['g-recaptcha-response'];
+        googleRecaptcha.verify({res : recaptchaResponse}, (error) => {
         if (error) {
-            return res.send(error+ " 2 " +{isHuman: false})
+            return res.send(error+{isHuman: false})
         } 
         return res.send({isHuman: true})
         })
 
 })
-
+*/
 app.get('/getAllData', function (req, res) {  
     var rawdata = fs.readFileSync('data.json');
     var jsondata = JSON.parse(rawdata);
