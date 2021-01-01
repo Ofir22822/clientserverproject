@@ -40,6 +40,33 @@ app.use(express.static(__dirname + '/public'));
 app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 app.use(bodyParser.json()); // support json encoded bodies
 
+const {Pool, Client} = require('pg')
+                                                //password
+const connectionString = 'postgressql://postgres:123456@localhost:5432/projectDB'
+
+const client = new Client({
+  connectionString:connectionString
+})
+
+client.connect()
+
+//insert into promocode table in database
+app.get('/insertcode', function (req, res) {  //default page
+    client.query('INSERT INTO public.promocode("PromoCode", "Description")VALUES($1, $2)',['aa', 'bb'], (err, respond)=>{
+        console.log(err, respond)
+        res.send(respond);
+      })
+}) 
+
+//get users table from database
+app.get('/getusers', function (req, res) {  //default page
+    client.query('select * from users', (err, respond)=>{
+        console.log(err, respond)
+        res.send(respond);
+        client.end()
+    })
+})   
+
 app.get('/', function (req, res) {  //default page
     res.sendFile(__dirname+"/public/login.html",);
 })
@@ -78,7 +105,7 @@ app.post('/recapche', function (req, res) {
     // Some pseudo server code:
 
         var recaptchaResponse = req.body['g-recaptcha-response'];
-        googleRecaptcha.verify({recaptchaResponse}, (error) => {
+        googleRecaptcha.verify({res : recaptchaResponse}, (error) => {
         if (error) {
             return res.send(error+{isHuman: false})
         } 
