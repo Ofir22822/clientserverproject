@@ -40,6 +40,9 @@ app.use(express.static(__dirname + '/public'));
 app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 app.use(bodyParser.json()); // support json encoded bodies
 
+const promoCodeDB = {ID:"", PromoCode: "", Description: ""};
+const usersDB = {ID: "", Name: "", FamilyName: "", Email: "", PromoCode: "", PhoneNumber: "", Country: "", City: "", Street: "", ZipCode: "", Password: ""};
+
 const {Pool, Client} = require('pg')
                                                 //password
 const connectionString = 'postgressql://postgres:123456@localhost:5432/projectDB'
@@ -49,6 +52,43 @@ const client = new Client({
 })
 
 client.connect()
+
+function parse(str) {
+    var args = [].slice.call(arguments, 1),
+        i = 0;
+
+    return str.replace(/%s/g, () => args[i++]);
+}
+
+app.post("/createUser",function(req,res){
+
+    var { userFirstName, userLastName, userEmail, userPassword, userPromoCode } = req.body; 
+
+    var query = 'select * from users where "Email"=\''+userEmail+'\'';
+    query = parse('select * from users where "Email"= \'%s\'', userEmail);
+
+    client.query(query, (err, respond)=>{
+        console.log(respond);
+        if(respond === undefined || respond.rowCount == 0) //user not exist, add user to database
+        {
+            client.query('INSERT INTO public.users("Name", "FamilyName", "Email", "PromoCode", "Password") VALUES ($1, $2, $3, $4, $5);',[userFirstName, userLastName, userEmail, userPromoCode, userPassword], (err, respond)=>{ 
+                console.log(respond.rowCount);
+                if(respond.rowCount == 1)
+                    res.redirect("/login.html");  
+                else
+                    res.send("database error, try again");
+                res.end();
+             });
+        }      
+        else    //return errot, user already exist
+        {
+            res.redirect("/register.html?not=1"); 
+            res.end();
+        }
+
+      })
+})
+
 
 //insert into promocode table in database
 app.get('/insertcode', function (req, res) {  //default page
@@ -72,10 +112,32 @@ app.get('/', function (req, res) {  //default page
 })
 
 app.post("/login",function(req,res){
-    if(req.body.userEmail.toLowerCase() == "admin" && req.body.userPassword.toLowerCase() == "admin")
-        res.redirect("/contactus");    
+    //if(req.body.userEmail.toLowerCase() == "admin" && req.body.userPassword.toLowerCase() == "admin")
+    //    res.redirect("/contactus");    
+
+    var { userEmail, userPassword } = req.body; 
+
+    var query = parse('select * from users where "Email"= \'%s\' and "Password"= \'%s\'', userEmail, userPassword);
+
+    client.query(query, (err, respond)=>{
+        console.log(respond);
+        if(respond === undefined || respond.rowCount == 0) //user not exist, add user to database
+        {
+            res.redirect("/login.html?not"); 
+        }      
+        else    //user exist
+        {
+            res.redirect("/index.html"); 
+            res.end();
+        }
+
+      })
 
     res.send("error");
+})
+
+app.post("/forgotPassword",function(req,res){
+    res.send("sent email");
 })
 
 app.get('/contactus', function (req, res) {  
