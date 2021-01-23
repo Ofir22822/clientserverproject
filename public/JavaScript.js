@@ -14,6 +14,22 @@ function emailValid(email) {
     return errorEmail;
 }
 
+function checkEmailValid() {
+    var email = document.getElementById("userEmail");
+    var msgError = document.getElementById("msgError");
+    var errorEmail = "";
+
+    if (/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(email.value))
+        return true;
+
+    errorEmail = "Invalid email address!\n";
+    if(errorEmail != "")
+    {
+        msgError.innerText += errorEmail;
+        return false;
+    }
+}
+
 /**
  * check password element value is valid password, 6 letters, and has: upper case letter, lower case letter, number, and special character
  * @param {any} password
@@ -82,9 +98,12 @@ function loginCheck() {
  * */
 function createAccount() {
     var msgError = document.getElementById("msgError");
+    var firstname = document.getElementById("userFirstName");
+    var lastname = document.getElementById("userLastName");
     var email = document.getElementById("userEmail");
     var password = document.getElementById("userPassword");
-    var passwordConfirm = document.getElementById("userPasswordConfirm");
+    var passwordConfirm = document.getElementById("userConfirmPassword");
+    var promoCode = document.getElementById("userPromoCode");
     var mdlEmail = document.getElementById("mdlEmail");
     var mdlPassword = document.getElementById("mdlPassword");
 
