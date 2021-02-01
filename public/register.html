@@ -9,7 +9,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>SB Admin 2 - Register</title>
+    <title>Register</title>
 
     <!-- Custom fonts for this template-->
     <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
@@ -17,26 +17,12 @@
         href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
         rel="stylesheet">
 
-    <!-- jQuery library -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-
     <!-- Custom styles for this template-->
     <link href="css/sb-admin-2.min.css" rel="stylesheet">
 
-    <script>
-        $(document).ready(function(){
-            const queryString = window.location.search;
-            const urlParams = new URLSearchParams(queryString);
-            const created = urlParams.get('not');
-
-            if(urlParams.has('not'))
-            {
-                var msgError = document.getElementById("msgError");
-                msgError.innerText += "error user exist";
-            }
-
-        });
-    </script>
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="validate-script.js"></script>
 
 </head>
 
@@ -54,7 +40,8 @@
                             <div class="text-center">
                                 <h1 class="h4 text-gray-900 mb-4">Create an Account!</h1>
                             </div>
-                            <form class="user" method="POST" id="formSingup" name="formSingup" action="/createUser">
+                            <!-- Register Form -->
+                            <form class="user" method="POST" id="formRegister" name="formRegister" action="/sign-up" onsubmit="return createAccountCheck();">
                                 <div class="form-group row">
                                     <div class="col-sm-6 mb-3 mb-sm-0">
                                         <input type="text" class="form-control form-control-user" id="userFirstName" name="userFirstName"
@@ -81,22 +68,20 @@
                                 </div>
                                 <div class="form-group row">
                                     <div class="col-sm-6 mb-3 mb-sm-0">
-                                        <input type="password" class="form-control form-control-user"
+                                        <input type="text" class="form-control form-control-user"
                                             id="userPromoCode" name="userPromoCode" placeholder="Have Promo Code">
                                     </div>
                                 </div>
-                                <button type="submit" class="btn btn-info w-100" value="Create my account">Create my account</button>
-                                <a href="login.html" class="btn btn-primary btn-user btn-block">
-                                    Register Account
-                                </a>
-                                <div id="msgError" class="text-danger"></div>
+                                <button type="submit" class="btn btn-primary btn-user btn-block" value="Login">Register Account</button>
+                                <div id="msgError" name="msgError" class="text-danger mt-3"></div>
                             </form>
                             <hr>
+                            <!-- Forgot Password & login Links -->
                             <div class="text-center">
                                 <a class="small" href="forgot-password.html">Forgot Password?</a>
                             </div>
                             <div class="text-center">
-                                <a class="small" href="login.html">Already have an account? Login!</a>
+                                <a class="small" href="/sign-in">Already have an account? Login!</a>
                             </div>
                         </div>
                     </div>

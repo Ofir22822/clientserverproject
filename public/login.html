@@ -9,7 +9,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>SB Admin 2 - Login</title>
+    <title>Login</title>
 
     <!-- Custom fonts for this template-->
     <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
@@ -19,6 +19,146 @@
 
     <!-- Custom styles for this template-->
     <link href="css/sb-admin-2.min.css" rel="stylesheet">
+
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="validate-script.js"></script>
+
+    <script>
+        $(document).ready(function () {
+
+            const queryString = window.location.search;
+            const urlParams = new URLSearchParams(queryString);
+            const created = urlParams.get('error');
+
+            if (urlParams.has('error')) {
+                /*
+                // Store
+                sessionStorage.setItem("lastname", "Smith");
+                // Retrieve
+                console.log(sessionStorage.getItem("lastname"));
+                // Store
+                localStorage.setItem("lastname", "Smith2");
+                // Retrieve
+                console.log(localStorage.getItem("lastname"));
+                localStorage.removeItem("lastname");
+                */
+                $("#msgError").addClass("text-danger");
+                $("input[id^='user']").addClass("is-invalid");
+                var msgError = document.getElementById("msgError");
+                msgError.innerText += "incorrect email or password for user";
+            }
+
+            if (urlParams.has('new')) {
+                var newValue = urlParams.get('new');
+
+                $("#msgError").removeClass("text-danger");
+                $("#msgError").addClass("text-success");
+
+                switch (newValue) {
+                    case "0":
+                        $("#msgError").text("Verification mail sent to email, confirm before login.");
+                        break;
+                    case "1":
+                        $("#msgError").text("User created you can now login.");
+                        break;
+                    case "2":
+                        $("#msgError").addClass("text-danger");
+                        $("#msgError").removeClass("text-success");
+                        $("#msgError").text("Error in DB, try to click link again.");
+                        break;
+                    case "3":
+                        $("#msgError").addClass("text-danger");
+                        $("#msgError").removeClass("text-success");
+                        $("#msgError").text("Error, user already exist.");
+                        break;
+                }
+            }
+
+            if (urlParams.has('password')) {
+                var passwordValue = urlParams.get('password');
+
+                switch (passwordValue) {
+                    case "0":
+                        $("#msgError").removeClass("text-danger");
+                        $("#msgError").addClass("text-success");
+                        $("#msgError").text("Password was changed, you can now login.");
+                        break;
+                    case "1":
+                        $("#msgError").addClass("text-danger");
+                        $("#msgError").removeClass("text-success");
+                        $("#msgError").text("Error, try clicking on link again.");
+                        break;
+
+                }
+            }
+
+
+        });
+
+        function loginCheckServer() {
+
+            var check = loginCheck();
+
+            if (!check)
+                return false;
+
+            userEmail = $("#userEmail").val();
+            userPassword = $("#userPassword").val();
+
+            //fetch to login user 
+            fetch('/sign-in', {
+                method: "POST",
+                body: JSON.stringify({ userEmail, userPassword }),
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            })
+                .then((res) => res.json())
+                .then((data) => {
+                    console.log(data);
+                    if (data.success) {
+                        localStorage.setItem("userEmail", data.info.Email);
+                        localStorage.setItem("userName", data.info.Name + " " + data.info.FamilyName);
+
+                        window.location.replace("/dashboard");
+                    }
+                    if (data.error) {
+                        if (data.errorPassword) {
+                            $("#msgError").addClass("text-danger");
+                            $("#msgError").removeClass("text-success");
+                            $("#msgError").text("Password is inccorect.");
+                        }
+                        if (data.errorUser) {
+                            $("#msgError").addClass("text-danger");
+                            $("#msgError").removeClass("text-success");
+                            $("#msgError").text("User email is incorrect.");
+                        }
+                    }
+
+                });
+
+
+            /*
+            $.ajax({
+                url: '/sign-in',
+                type: 'POST',
+                data: $('#formLogin').serialize(),
+                dataType: 'json',
+                contentType: false,
+                success: function (response) {
+                $("#msgError").append("<br>");
+                $("#msgError").append(response);
+            },
+            error: function (xhr, status, errmsg) {
+                alert(errmsg + "  " + status);
+            }
+            });
+            */
+
+        }
+
+    </script>
 
 </head>
 
@@ -41,15 +181,15 @@
                                     <div class="text-center">
                                         <h1 class="h4 text-gray-900 mb-4">Welcome Back!</h1>
                                     </div>
-                                    <form class="user">
+                                    <form class="user" id="formLogin" name="formLogin">
                                         <div class="form-group">
-                                            <input type="email" class="form-control form-control-user"
-                                                id="exampleInputEmail" aria-describedby="emailHelp"
+                                            <input type="email" class="form-control form-control-user" id="userEmail"
+                                                name="userEmail" aria-describedby="emailHelp"
                                                 placeholder="Enter Email Address...">
                                         </div>
                                         <div class="form-group">
                                             <input type="password" class="form-control form-control-user"
-                                                id="exampleInputPassword" placeholder="Password">
+                                                id="userPassword" name="userPassword" placeholder="Password">
                                         </div>
                                         <div class="form-group">
                                             <div class="custom-control custom-checkbox small">
@@ -58,16 +198,18 @@
                                                     Me</label>
                                             </div>
                                         </div>
-                                        <a href="index.html" class="btn btn-primary btn-user btn-block">
-                                            Login
-                                        </a>
+                                        <div class="text-center">
+                                            <button type="button" class="btn btn-primary btn-user btn-block"
+                                                onclick="loginCheckServer();">Login</button>
+                                            <div id="msgError" name="msgError" class="text-danger mt-3"></div>
+                                        </div>
                                     </form>
                                     <hr>
                                     <div class="text-center">
                                         <a class="small" href="forgot-password.html">Forgot Password?</a>
                                     </div>
                                     <div class="text-center">
-                                        <a class="small" href="register.html">Create an Account!</a>
+                                        <a class="small" href="/sign-up">Create an Account!</a>
                                     </div>
                                 </div>
                             </div>

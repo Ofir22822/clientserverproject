@@ -9,7 +9,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>SB Admin 2 - Dashboard</title>
+    <title>Profile</title>
 
     <!-- Custom fonts for this template-->
     <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
@@ -19,6 +19,242 @@
 
     <!-- Custom styles for this template-->
     <link href="css/sb-admin-2.min.css" rel="stylesheet">
+
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="validate-script.js"></script>
+
+    <script>
+        var flagUpdate = false;
+
+        $(document).ready(function () {
+            const queryString = window.location.search;
+            const urlParams = new URLSearchParams(queryString);
+
+            if (urlParams.has('up')) {
+                $("#msgError").removeClass("text-danger");
+                $("#msgError").addClass("text-success");
+                $("#msgError").text("Updated user details.");
+            }
+            if (urlParams.has('upmail')) {
+                $("#msgError").removeClass("text-danger");
+                $("#msgError").addClass("text-success");
+                $("#msgError").text("Updated user details.\nCheck confirm mail to change email.");
+            }
+            if (urlParams.has('newmail')) {
+                $("#msgError").removeClass("text-danger");
+                $("#msgError").addClass("text-success");
+                $("#msgError").text("Email was changed.");
+                localStorage.setItem("userEmail", urlParams.get('newmail'));
+            }
+            if (urlParams.has('password')) {
+                $("#msgErrorPassword").removeClass("text-danger");
+                $("#msgErrorPassword").addClass("text-success");
+                $("#msgErrorPassword").text("Updated user password.");
+            }
+
+            var userEmail = localStorage.getItem("userEmail");
+
+            if (userEmail) {
+                //fetch to get user 
+                fetch('/profile', {
+                    method: "POST",
+                    body: JSON.stringify({ userEmail }),
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                })
+                    .then((res) => res.json())
+                    .then((data) => {
+
+                        if (data.success) {
+
+                            $("#userUPFirstName").val(data.info.Name);
+                            $("#userUPLastName").val(data.info.FamilyName);
+                            $("#userUPPhone").val(data.info.PhoneNumber);
+                            $("#userUPCountry").val(data.info.Country);
+                            $("#userUPEmail").val(data.info.Email);
+                            $("#userUPCity").val(data.info.City);
+                            $("#userUPStreet").val(data.info.Street);
+                            $("#userUPZipCode").val(data.info.ZipCode);
+
+                            localStorage.setItem("details", JSON.stringify(data.info));
+
+                            styleFields();
+                        }
+                        else {
+                            window.location.replace("/dashboard");
+                        }
+
+                    });
+            }
+            else
+                window.location.replace("/dashboard");
+
+            //styleFields();
+
+            //$('input[id^="user"]').attr("readonly").changeElementType('div');
+
+        });
+
+        function styleFields() {
+            var inputs = $("input[id^='user']");
+            $.each(inputs, function (index, input) {
+                //console.log(input);
+
+                if ($(input).attr("readonly") != undefined) {
+                    /*
+                    var NewElement = $("<div />");
+                    $.each($(input).attributes, function (i, attrib) {
+                        $(NewElement).attr(attrib.name, attrib.value);
+                    });
+
+                    $(input).replaceWith(function () {
+                        return $(NewElement).append($(input).val());
+                    });
+                    */
+                    //console.log($(input).val());
+                    $(input).addClass("border-0 bg-white text-primary font-weight-bold");
+                    if ($(input).val() === "") {
+                        $(input).val("-");
+                        $(input).css("opacity", "0.5");
+                    }
+
+                }
+            });
+
+        }
+
+        function clickUpdate() {
+
+            flagUpdate = (!flagUpdate) ? true : false;
+
+            var inputs = $("input[id^='userUP']");
+            $.each(inputs, function (index, input) {
+                if (flagUpdate) {
+                    $(input).removeClass("border-0 bg-white text-primary font-weight-bold");
+                    if ($(input).attr("readonly") != undefined) {
+                        if ($(input).val() == "-") {
+                            $(input).val("");
+                            $(input).css("opacity", "1");
+                        }
+                        $(input).removeAttr("readonly");
+                    }
+                }
+                else {
+                    $(input).addClass("border-0 bg-white text-primary font-weight-bold");
+                    if ($(input).val() == "")
+                        $(input).val("-");
+                    $(input).attr("readonly", "");
+                    $(input).removeClass("is-invalid");
+                }
+            });
+
+            if (flagUpdate) {
+                $("#updateDetails").addClass("d-none");
+                $("#cancelDetails").removeClass("d-none");
+                $("#saveDetails").removeClass("d-none");
+            }
+            else {
+                $("#updateDetails").removeClass("d-none");
+                $("#cancelDetails").addClass("d-none");
+                $("#saveDetails").addClass("d-none");
+            }
+
+
+            return false;
+        }
+
+        function saveDetailsClick() {
+
+            var userData = {
+                "prevEmail": localStorage.getItem("userEmail"),
+                "Name": $("#userUPFirstName").val(),
+                "FamilyName": $("#userUPLastName").val(),
+                "PhoneNumber": $("#userUPPhone").val(),
+                "Country": $("#userUPCountry").val(),
+                "Email": $("#userUPEmail").val(),
+                "City": $("#userUPCity").val(),
+                "Street": $("#userUPStreet").val(),
+                "ZipCode": $("#userUPZipCode").val()
+            }
+
+            var prevData = JSON.parse(localStorage.getItem("details"));
+
+            var flag = updateDetailsCheck(prevData);
+            if (!flag)
+                return false;
+
+            fetch('/profile-save', {
+                method: "POST",
+                body: JSON.stringify({ userData }),
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            })
+                .then((res) => res.json())
+                .then((data) => {
+
+                    if (data.success) {
+                        if (data.email)
+                            window.location.replace("/profile?upmail");
+                        else
+                            window.location.replace("/profile?up");
+                    }
+                    else {
+                        $("#msgError").addClass("text-danger");
+                        $("#msgError").removeClass("text-success");
+                        $("#msgError").text("Error in update.");
+                    }
+
+                });
+        }
+
+        function changePasswordClick() {
+
+            var userEmail = localStorage.getItem("userEmail");
+
+            var flag = changePasswordCheck();
+            if (!flag)
+                return false;
+
+            var newPassword = $("#userNewPassword").val();
+            var oldPassword = $("#userPassword").val();
+            var userData = { userEmail, oldPassword, newPassword };
+
+            fetch('/change-password', {
+                method: "POST",
+                body: JSON.stringify({ userEmail, oldPassword, newPassword }),
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            })
+                .then((res) => res.json())
+                .then((data) => {
+
+                    if (data.success) {
+                        $("#msgErrorPassword").removeClass("text-danger");
+                        $("#msgErrorPassword").addClass("text-success");
+                        window.location.replace("/profile?password");
+                    }
+
+                    if(data.error){
+                    if (data.oldpassword) {
+                        $("#msgErrorPassword").addClass("text-danger");
+                        $("#msgErrorPassword").removeClass("text-success");
+                        $("#msgErrorPassword").text("Old password is incorrect.");
+                    }
+                    else {
+                        $("#msgErrorPassword").addClass("text-danger");
+                        $("#msgErrorPassword").removeClass("text-success");
+                        $("#msgErrorPassword").text("Error in update. try again.");
+                    }
+                }
+
+                });
+        }
+
+    </script>
 
 </head>
 
@@ -159,30 +395,45 @@
                         <li class="nav-item dropdown no-arrow">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">Douglas McGee</span>
+                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">
+                                    Hello, <span id="username"></span>!
+                                </span>
                                 <img class="img-profile rounded-circle" src="img/undraw_profile.svg">
                             </a>
+
                             <!-- Dropdown - User Information -->
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
                                 aria-labelledby="userDropdown">
-                                <a class="dropdown-item" href="#">
-                                    <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Profile
-                                </a>
-                                <a class="dropdown-item" href="#">
-                                    <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Settings
-                                </a>
-                                <a class="dropdown-item" href="#">
-                                    <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Activity Log
-                                </a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
-                                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Logout
-                                </a>
+
+                                <span id="userMenu" class="hide">
+                                    <a class="dropdown-item" href="#">
+                                        <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                                        Profile
+                                    </a>
+                                    <a class="dropdown-item" href="about.html">
+                                        <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                        About
+                                    </a>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item" data-toggle="modal" data-target="#logoutModal">
+                                        <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                        Logout
+                                    </a>
+                                </span>
+
+                                <span id="guestMenu">
+                                    <a class="dropdown-item" href="about.html">
+                                        <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                        About
+                                    </a>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item" href="/sign-in">
+                                        <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                        Login
+                                    </a>
+                                </span>
                             </div>
+
                         </li>
 
                     </ul>
@@ -203,54 +454,71 @@
                         <!-- Profile Details -->
                         <div class="card shadow mb-4 w-100">
                             <div class="card-body">
-                                <form class="user">
+                                <form class="user" id="formDetails" name="formDetails">
                                     <div class="form-group row">
                                         <div class="col-sm-3 mb-3 mb-sm-0">
                                             <h6>First Name</h6>
-                                            <input type="text" class="form-control form-control-user"
-                                                id="exampleFirstName" placeholder="First Name">
+                                            <input type="text" class="form-control form-control-user" readonly=""
+                                                id="userUPFirstName" placeholder="Enter First Name" value="test">
                                         </div>
                                         <div class="col-sm-3">
                                             <h6>Last Name</h6>
-                                            <input type="text" class="form-control form-control-user"
-                                                id="exampleLastName" placeholder="Last Name">
+                                            <input type="text" class="form-control form-control-user" readonly=""
+                                                id="userUPLastName" placeholder="Enter Last Name">
                                         </div>
                                         <div class="col-sm-3">
                                             <h6>Phone Number</h6>
-                                            <input type="text" class="form-control form-control-user"
-                                                id="exampleLastName" placeholder="Last Name">
+                                            <input type="tel" pattern="[0-9]{3}[0-9]{3}[0-9]{4}"
+                                                class="form-control form-control-user" readonly="" id="userUPPhone"
+                                                placeholder="Enter Phone Number">
                                         </div>
                                         <div class="col-sm-3">
                                             <h6>Country</h6>
-                                            <input type="text" class="form-control form-control-user"
-                                                id="exampleLastName" placeholder="Last Name">
+                                            <input type="text" class="form-control form-control-user" readonly=""
+                                                id="userUPCountry" placeholder="Enter Country">
                                         </div>
                                     </div>
                                     <div class="form-group row">
                                         <div class="col-sm-3 mb-3 mb-sm-0">
                                             <h6>E-mail</h6>
-                                            <input type="text" class="form-control form-control-user"
-                                                id="exampleFirstName" placeholder="First Name">
+                                            <input type="email" class="form-control form-control-user" readonly=""
+                                                id="userUPEmail" placeholder="Enter E-mail">
                                         </div>
                                         <div class="col-sm-3">
                                             <h6>City</h6>
-                                            <input type="text" class="form-control form-control-user"
-                                                id="exampleLastName" placeholder="Last Name">
+                                            <input type="text" class="form-control form-control-user" readonly=""
+                                                id="userUPCity" placeholder="Enter City">
                                         </div>
                                         <div class="col-sm-3">
                                             <h6>Street</h6>
-                                            <input type="text" class="form-control form-control-user"
-                                                id="exampleLastName" placeholder="Last Name">
+                                            <input type="text" class="form-control form-control-user" readonly=""
+                                                id="userUPStreet" placeholder="Enter Street">
                                         </div>
                                         <div class="col-sm-3">
                                             <h6>Zip Code</h6>
-                                            <input type="text" class="form-control form-control-user"
-                                                id="exampleLastName" placeholder="Last Name">
+                                            <input type="text" class="form-control form-control-user" readonly=""
+                                                id="userUPZipCode" placeholder="Enter Zip Code">
                                         </div>
                                     </div>
-                                    <a href="login.html" class="btn btn-primary btn-user w-25" style="float: right;">
-                                        Update Details
-                                    </a>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <div id="msgError" name="msgError" class="text-danger mt-3"></div>
+                                        </div>
+                                        <div class="col-3">
+                                            <div id="cancelDetails" class="btn btn-danger btn-user btn-block d-none"
+                                                onclick="window.location.replace('/profile')">
+                                                Cancel</div>
+                                        </div>
+                                        <div class="col-3">
+                                            <div id="updateDetails" class="btn btn-primary btn-user btn-block"
+                                                onclick="clickUpdate()">
+                                                Update Details</div>
+                                            <button type="button" id="saveDetails"
+                                                class="btn btn-info btn-user btn-block mt-0 d-none"
+                                                onclick="saveDetailsClick()">
+                                                Save Details</button>
+                                        </div>
+                                    </div>
                                 </form>
                             </div>
                         </div>
@@ -268,30 +536,42 @@
                             <div class="card-body">
                                 <form class="user">
 
-                                    <div class="form-group row">
-                                        <div class="col-sm-6">
-                                            <h6>Old Password</h6>
-                                            <input type="text" class="form-control form-control-user"
-                                                id="exampleFirstName" placeholder="Old Password">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <div class="form-group row">
+                                                <div class="col-sm-12">
+                                                    <h6>Old Password</h6>
+                                                    <input type="text" class="form-control form-control-user"
+                                                        id="userPassword" placeholder="Old Password">
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-sm-6">
+                                                    <h6>New Password</h6>
+                                                    <input type="text" class="form-control form-control-user"
+                                                        id="userNewPassword" placeholder="New Password">
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <h6>Confirm New</h6>
+                                                    <input type="text" class="form-control form-control-user"
+                                                        id="userConfirmNewPassword" placeholder="Confirm New Password">
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-sm-12">
+                                                    <button type="button"
+                                                        class="btn btn-primary btn-user btn-block mt-0"
+                                                        onclick="changePasswordClick()">
+                                                        Change Password
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="form-group row">
-                                        <div class="col-sm-3">
-                                            <h6>New Password</h6>
-                                            <input type="text" class="form-control form-control-user"
-                                                id="exampleLastName" placeholder="New Password">
-                                        </div>
-                                        <div class="col-sm-3">
-                                            <h6>Confirm New</h6>
-                                            <input type="text" class="form-control form-control-user"
-                                                id="exampleLastName" placeholder="Confirm New Password">
-                                        </div>
-                                    </div>
-                                    <div class="form-group row">
-                                        <div class="col-sm-6">
-                                            <a href="login.html" class="btn btn-primary btn-user w-100">
-                                                Change Password
-                                            </a>
+                                        <div class="col-6">
+                                            <div class="col-sm-6">
+                                                <div id="msgErrorPassword" name="msgError" class="text-danger mt-3">
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </form>
@@ -355,13 +635,6 @@
 
     <!-- Custom scripts for all pages-->
     <script src="js/sb-admin-2.min.js"></script>
-
-    <!-- Page level plugins -->
-    <script src="vendor/chart.js/Chart.min.js"></script>
-
-    <!-- Page level custom scripts -->
-    <script src="js/demo/chart-area-demo.js"></script>
-    <script src="js/demo/chart-pie-demo.js"></script>
 
 </body>
 

@@ -1,31 +1,49 @@
 var express = require('express');
-var app = express();
 var bodyParser = require('body-parser')
 var http = require('https');
 var url = require('url');
 var fs = require('fs');
 var path = require('path');
 var nodemailer = require('nodemailer');
+var cookieParser = require('cookie-parser');
+var session = require('express-session');
+var urlCrypt = require('url-crypt')('~{ry*I)==yU/]9<7DPk!Hj"R#:-/Z7(hTBnlRS=4CXF');
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 
-const GoogleRecaptcha = require('google-recaptcha')
-const googleRecaptcha = new GoogleRecaptcha({secret: '6Le8GRQaAAAAAF0pX_Rp7IaErjS4GSR_MkaPEeRx'})
-
+var app = express();
 var port = process.env.PORT || 8080;
-var emailAdmin = 'ofir.rahamim@e.braude.ac.il';     //******change username
+var siteAddress = "http://localhost:8080";
 
+app.use(express.static(__dirname + '/public'));
+app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
+app.use(bodyParser.json()); // support json encoded bodies
+
+app.use(cookieParser());
+app.use(session({ secret: "Shh, its a secret!" }));
+
+//connect to database
+const { Pool, Client } = require('pg')          // \/-password
+const connectionString = 'postgressql://postgres:123456@localhost:5432/projectDB'
+const client = new Client({
+    connectionString: connectionString
+});
+client.connect();
+
+//email sender options
+var emailAdmin = 'ofir.rahamim@e.braude.ac.il';     //******change username
 var transporter = nodemailer.createTransport({
-    host:'smtp.office365.com',
+    host: 'smtp.office365.com',
     port: 587,
     secure: false,
-    auth:{
-        user: emailAdmin,  
-        pass: ''    //************* password for email
+    auth: {
+        user: emailAdmin,
+        pass: 'WoWO6438'    //************* password for email
     },
     tls: {
         rejectUnauthorized: false
     }
 });
-
 var mailOptions = {
     from: emailAdmin,
     to: emailAdmin,
@@ -33,203 +51,465 @@ var mailOptions = {
     text: ""
 };
 
-const users =[];
+app.listen(port, () => {
+    console.log('App listening on port %d!', port);
+});
 
-
-app.use(express.static(__dirname + '/public'));
-app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
-app.use(bodyParser.json()); // support json encoded bodies
-
-const promoCodeDB = {ID:"", PromoCode: "", Description: ""};
-const usersDB = {ID: "", Name: "", FamilyName: "", Email: "", PromoCode: "", PhoneNumber: "", Country: "", City: "", Street: "", ZipCode: "", Password: ""};
-
-const {Pool, Client} = require('pg')
-                                                //password
-const connectionString = 'postgressql://postgres:123456@localhost:5432/projectDB'
-
-const client = new Client({
-  connectionString:connectionString
-})
-
-client.connect()
-
-function parse(str) {
-    var args = [].slice.call(arguments, 1),
-        i = 0;
-
+function parse(str) {   //function for string formatting with %s
+    var args = [].slice.call(arguments, 1), i = 0;
     return str.replace(/%s/g, () => args[i++]);
 }
 
-app.post("/createUser",function(req,res){
+/* -------- get request, show wesite pages */
 
-    var { userFirstName, userLastName, userEmail, userPassword, userPromoCode } = req.body; 
+app.get('/dashboard', function (req, res) {  //default page, dashboard
+    res.sendFile(__dirname + "/public/index.html",);
+});
 
-    var query = 'select * from users where "Email"=\''+userEmail+'\'';
-    query = parse('select * from users where "Email"= \'%s\'', userEmail);
+app.get('/sign-in', function (req, res) {  //open login page
+    res.sendFile(__dirname + "/public/login.html",);
+});
 
-    client.query(query, (err, respond)=>{
+app.get('/sign-up', function (req, res) {  //open register page
+    res.sendFile(__dirname + "/public/register.html",);
+});
+
+app.get('/profile', function (req, res) {  //open register page
+    res.sendFile(__dirname + "/public/profile-details.html",);
+});
+
+/* -------- post request, pages action */
+
+app.post('/sign-in', function (req, res) {  //login page post action
+    console.log(req.body);
+    var { userEmail, userPassword } = req.body;
+    var query = parse('select * from users where "Email"= \'%s\'', userEmail);
+
+    //res.send({ success: true, error: false, info: user });
+    //res.end();
+
+    client.query(query, (err, respond) => {
         console.log(respond);
-        if(respond === undefined || respond.rowCount == 0) //user not exist, add user to database
-        {
-            client.query('INSERT INTO public.users("Name", "FamilyName", "Email", "PromoCode", "Password") VALUES ($1, $2, $3, $4, $5);',[userFirstName, userLastName, userEmail, userPromoCode, userPassword], (err, respond)=>{ 
-                console.log(respond.rowCount);
-                if(respond.rowCount == 1)
-                    res.redirect("/login.html");  
+        if (respond === undefined || respond.rowCount == 0) {    //user not exist, return error
+            res.send({ success: false, error: true, errorUser:true });
+            res.end();
+        }
+        else {   //user exist, login user
+            hash = respond.rows[0].Password;
+            var user = respond.rows[0];
+
+            bcrypt.compare(userPassword, hash).then(function (result) {  //compre with encrypted password Aa123456!
+                console.log(result);
+                if (result) {
+                    //res.cookie('user', userEmail);
+                    //res.cookie('page_views'+userEmail, user);
+                    //var data = JSON.stringify(user);
+                    //res.writeHead(200, { 'Data-Type': 'json' , 'Data': data});
+                    //res.write(JSON.stringify(user));
+                    res.send({ success: true, error: false, info: user });
+                    res.end();
+                    //res.redirect("/sign-in");
+                }
                 else
-                    res.send("database error, try again");
-                res.end();
-             });
-        }      
-        else    //return errot, user already exist
-        {
-            res.redirect("/register.html?not=1"); 
-            res.end();
-        }
-
-      })
-})
-
-
-//insert into promocode table in database
-app.get('/insertcode', function (req, res) {  //default page
-    client.query('INSERT INTO public.promocode("PromoCode", "Description")VALUES($1, $2)',['aa', 'bb'], (err, respond)=>{
-        console.log(err, respond)
-        res.send(respond);
-      })
-}) 
-
-//get users table from database
-app.get('/getusers', function (req, res) {  //default page
-    client.query('select * from users', (err, respond)=>{
-        console.log(err, respond)
-        res.send(respond);
-        client.end()
-    })
-})   
-
-app.get('/', function (req, res) {  //default page
-    res.sendFile(__dirname+"/public/login.html",);
-})
-
-app.post("/login",function(req,res){
-    //if(req.body.userEmail.toLowerCase() == "admin" && req.body.userPassword.toLowerCase() == "admin")
-    //    res.redirect("/contactus");    
-
-    var { userEmail, userPassword } = req.body; 
-
-    var query = parse('select * from users where "Email"= \'%s\' and "Password"= \'%s\'', userEmail, userPassword);
-
-    client.query(query, (err, respond)=>{
-        console.log(respond);
-        if(respond === undefined || respond.rowCount == 0) //user not exist, add user to database
-        {
-            res.redirect("/login.html?not"); 
-        }      
-        else    //user exist
-        {
-            res.redirect("/index.html"); 
-            res.end();
-        }
-
-      })
-
-    res.send("error");
-})
-
-app.post("/forgotPassword",function(req,res){
-    res.send("sent email");
-})
-
-app.get('/contactus', function (req, res) {  
-    res.sendFile(__dirname+"/public/contactus.html",);
-})
-
-app.get('/recapche', function (req, res) {  
-    res.sendFile(__dirname+"/public/recapche.html",);
-})
-/*
-http.on('POST', (request, response) => {
-    const recaptchaResponse = request.body['g-recaptcha-response']
-  
-    googleRecaptcha.verify({response: recaptchaResponse}, (error) => {
-      if (error) {
-        return response.send({isHuman: false})
-      }
-  
-      return response.send({isHuman: true})
-    })
-  })
-*/
-
-app.post('/recapche', function (req, res) {  
-    //res.send(req.body['g-recaptcha-response']);
-
-    // Some pseudo server code:
-
-        var recaptchaResponse = req.body['g-recaptcha-response'];
-        googleRecaptcha.verify({res : recaptchaResponse}, (error) => {
-        if (error) {
-            return res.send(error+{isHuman: false})
-        } 
-        return res.send({isHuman: true})
-        })
-
-})
-
-app.get('/getAllData', function (req, res) {  
-    var rawdata = fs.readFileSync('data.json');
-    var jsondata = JSON.parse(rawdata);
-    var newLocal = jsondata[0].id;
-    res.send(newLocal);
-})
-
-app.post("/singup",function(req,res){
-
-    var msgSingup = "";
-
-    mailOptions.to = req.body.userEmail;
-    mailOptions.subject = 'confirm mail';
-    mailOptions.text = 'singup success';
-
-    transporter.sendMail(mailOptions, function(error, info){
-        if(error)
-        {
-            console.log(error);  
-        }
-        else
-        {
-            users.push({
-                "userEmail":req.body.userEmail,
-                "userPassword":req.body.userPassword
+                {
+                    res.send({ success: false, error: true, errorPassword:true });
+                    res.end();
+                }
             });
-            msgSingup = "success singup, email sent to address: " + req.body.userEmail;
-            console.log(msgSingup);
-            res.send(msgSingup);
         }
     });
 
-})
+});
 
-app.post("/contactus",function(req,res){
+app.post('/profile', function (req, res) {  //login page post action
+    console.log(req.body);
+    var { userEmail } = req.body;
+    var query = parse('select * from users where "Email"= \'%s\'', userEmail);
+
+    client.query(query, (err, respond) => {
+
+        if (respond === undefined || respond.rowCount == 0) {    //user not exist, return error
+            res.send({ success: false, error: true, info: null });
+            res.end();
+        }
+        else {   //user exist, return user details
+            var user = respond.rows[0];
+            res.send({ success: true, error: false, info: user });
+            res.end();
+        }
+    });
+
+});
+
+app.post('/profile-save', function (req, res) {  //login page post action Aa123456!
+    var { userData } = req.body;
+    var userEmail = userData.prevEmail;
+
+    var mailInfo;
+
+    console.log(userData);
+    console.log(userData.Email);
+    if (userEmail != userData.Email) {
+        var emailData = { "newEmail": userData.Email, "prevEmail": userEmail }
+        var encryptData = urlCrypt.cryptObj(emailData);  //encryped user data
+
+        //create link for email
+        var link = siteAddress + "/link?type=emailnew&data=" + encryptData;
+        var title = "Email Change";
+
+        setMail(userEmail, title, link);
+
+        transporter.sendMail(mailOptions, function (error, info) {
+            if (error) {
+                res.send({ success: false, error: true });
+                res.end();
+            }
+
+            client.query('Update public.users set "Name"=$1, "FamilyName"=$2, "PhoneNumber"=$3, "Country"=$4, "City"=$5, "Street"=$6, "ZipCode"=$7 where "Email"=$8;', [userData.Name, userData.FamilyName, userData.PhoneNumber, userData.Country, userData.City, userData.Street, userData.ZipCode, userData.prevEmail], (err, respond) => {
+                console.log(respond);
+                console.log(err);
+                if (respond != undefined && respond.rowCount == 1) {
+                    res.send({ success: true, error: false, email: true });
+                    res.end();
+                }
+                else {
+                    res.send({ success: false, error: true, email: false });
+                    res.end();
+                }
+            });
+        });
+    }
+    else {
+        client.query('Update public.users set "Name"=$1, "FamilyName"=$2, "PhoneNumber"=$3, "Country"=$4, "City"=$5, "Street"=$6, "ZipCode"=$7 where "Email"=$8;', [userData.Name, userData.FamilyName, userData.PhoneNumber, userData.Country, userData.City, userData.Street, userData.ZipCode, userData.prevEmail], (err, respond) => {
+            console.log(respond);
+            console.log(err);
+            if (respond != undefined && respond.rowCount == 1) {
+                res.send({ success: true, error: false, email: false });
+                res.end();
+            }
+            else {
+                res.send({ success: false, error: true, email: false });
+                res.end();
+            }
+        });
+    }
+
+});
+
+app.post('/change-password', function (req, res) {  //login page post action Aa123456!
+    var { userEmail, oldPassword, newPassword } = req.body;
+
+    console.log(userEmail);
+    console.log(oldPassword);
+    console.log(newPassword);
+    var query = parse('select * from users where "Email"= \'%s\'', userEmail);
+
+    client.query(query, (err, respond) => {
+
+        if (respond === undefined || respond.rowCount == 1) {    //user not exist, return error
+
+            var hash = respond.rows[0].Password;
+            bcrypt.compare(oldPassword, hash).then(function (result) {  //compre with encrypted password Aa123456!
+                if (result) {
+                    bcrypt.hash(newPassword, saltRounds, function (err, hash) {  //encrypt password
+                        newPassword = hash;
+
+                    client.query('Update public.users set "Password"=$1 where "Email"=$2;', [newPassword, userEmail], (err, respond) => {
+                        if (respond != undefined && respond.rowCount == 1) {
+                            res.send({ success: true, error: false, oldpassword: false });
+                            res.end();
+                        }
+                        else {
+                            res.send({ success: false, error: true, oldpassword: false });
+                            res.end();
+                        }
+                    });
+                });
+
+                }
+                else {
+                    res.send({ success: false, error: true, oldpassword: true });
+                    res.end();
+                }
+            });
+
+        }
+        else {   //user exist, return user details
+            res.send({ success: false, error: true, oldpassword: false });
+            res.end();
+        }
+    });
+
+
+
+
+});
+
+app.post('/sign-in2', function (req, res) {  //login page post action
+    var { userEmail, userPassword } = req.body;
+    var user = { "userName": "asd", "userEmail": userEmail };
+    var query = parse('select * from users where "Email"= \'%s\'', userEmail, userPassword);
+
+    client.query(query, (err, respond) => {
+        if (respond === undefined || respond.rowCount == 0) {    //user not exist, return error
+            res.redirect("/sign-in?error");
+        }
+        else {   //user exist, login user
+            hash = respond.rows[0].Password;
+
+            bcrypt.compare(userPassword, hash).then(function (result) {  //compre with encrypted password Aa123456!
+                console.log(result);
+                if (result) {
+                    //res.cookie('user', userEmail);
+                    res.cookie('page_views' + userEmail, user);
+                    res.writeHead(200, { 'Content-Type': 'text/html' });
+                    res.write(JSON.stringify(user));
+                    //res.redirect("/dashboard");
+                }
+                else
+                    res.redirect("/sign-in?error");
+            });
+        }
+    });
+});
+
+function setMail(userEmail, title, link) {
+    mailOptions.to = userEmail;
+    mailOptions.subject = "Confirm " + title;
+
+    var mailText = "<h2>Confirm " + title + "</h2> <hr>"
+        + "<p>Press link to confirm " + title + " :</p>"
+        + "<a href='" + link + "' target='_blank'>" + link + "</a>";//"<div style='text-align: center;'><b>confirm register</b><br>" + "http://localhost:8080/link?data="+base64;
+
+    mailOptions.html = mailText;
+}
+
+app.post('/sign-up', function (req, res) {  //login page post action
+    var { userFirstName, userLastName, userEmail, userPassword, userPromoCode } = req.body;
+
+    var query = parse('select * from users where "Email"= \'%s\'', userEmail);
+
+    bcrypt.hash(userPassword, saltRounds, function (err, hash) {  //encrypt password
+        userPassword = hash;
+
+        client.query(query, (err, respond) => {
+            if (respond === undefined || respond.rowCount == 0) //user not exist, add user to database
+            {
+                var userData = { userFirstName, userLastName, userEmail, userPassword, userPromoCode };
+                var encryptData = urlCrypt.cryptObj(userData);  //encryped user data
+
+                //create link for email
+                var link = siteAddress + "/link?type=reg&data=" + encryptData;
+                var title = "Registration";
+
+                var mailSent = setMail(userEmail, title, link);
+
+                transporter.sendMail(mailOptions, function (error, info) {
+                    if (error)
+                        res.redirect("/sign-up?error=4");   //return mail not sent
+
+                    res.redirect("/sign-in?new=0");     //return success, mail sent
+                });
+            }
+            else {   //return error, user already exist
+                res.redirect("/sign-up?error=1");
+            }
+
+        })
+
+    });
+});
+
+app.post('/forgot-password', function (req, res) {  //login page post action
+    var { userEmail } = req.body;
+
+    var query = parse('select * from users where "Email"= \'%s\'', userEmail);
+
+    client.query(query, (err, respond) => {
+        if (respond === undefined || respond.rowCount == 1) //user exist
+        {
+            var userData = userEmail;
+            var encryptData = urlCrypt.cryptObj(userData);  //encryped user data
+
+            //create link for email
+            var link = siteAddress + "/link?type=password&data=" + encryptData;
+            var title = "Forgot Password";
+
+            setMail(userEmail, title, link);
+
+            transporter.sendMail(mailOptions, function (error, info) {
+                if (error)
+                    res.redirect("/forgot-password.html?error=1");   //return mail not sent
+
+                res.redirect("/forgot-password.html?mail");     //return success, mail sent
+            });
+        }
+        else {   //user not exist
+            res.redirect("/forgot-password.html?error=0");
+        }
+
+    });
+
+});
+
+app.post('/update-password', function (req, res) {  //login page post action Aa123456!
+    var { userPassword, userEmail } = req.body;
+    var userEmailEncrypt = userEmail;
+    userEmail = urlCrypt.decryptObj(userEmail);
+
+    var userData = { userEmail, userPassword };
+    var encryptData = urlCrypt.cryptObj(userData);  //encryped user data
+
+    //create link for email
+    var link = siteAddress + "/link?type=passwordnew&data=" + encryptData;
+    var title = "Password Change";
+
+    setMail(userEmail, title, link);
+
+    transporter.sendMail(mailOptions, function (error, info) {
+        if (error)
+            res.redirect("/link?type=password&data=" + userEmailEncrypt + "&error");   //return mail not sent
+
+        res.redirect("/link?type=password&data=" + userEmailEncrypt + "&mail");     //return success, mail sent
+    });
+
+});
+
+
+
+app.get('/test', function (req, res) {  //open register page
+    res.sendFile(__dirname + "/public/test.html",);
+});
+
+app.post('/test', function (req, res) {  //login page post action
+
+    if (!req.body)
+        res.error("Bad Request");
+
+    var { userEmail, userPassword } = req.body;
+    var user = { "data": req.body };
+
+    res.send(JSON.stringify(user));
+});
+
+app.get('/test2', function (req, res) {  //login page post action
+
+    // Get some data
+    var data = { hello: 'world', this: 'is a test', of: 'url-crypt' };
+
+    // Encrypt your data
+    var base64 = urlCrypt.cryptObj(data);
+
+    var strData = JSON.stringify(data);
+    var encryptData;
+    console.log(strData);
+
+    //bcrypt.compareSync("bacon", hash); // true
+    //bcrypt.compareSync("veggies", hash); // false
+
+    // Give it to someone.  It's encrypted so they can't tamper with it
+    // You weren't lazy about your app key were you?
+    console.log(base64);
+    console.log(encryptData);
+
+    // Get it back
+    var backAgain = urlCrypt.decryptObj(base64);
+    console.log(backAgain);
+
+    // Expectations
+    var check = backAgain == data;
+    console.log(check);
 
     mailOptions.to = emailAdmin;
-    mailOptions.subject = req.body.userTitle;
-    mailOptions.text = "from: "+req.body.userName+"\nemail: "+req.body.userEmail + "\n\n" +req.body.userSubject;
+    mailOptions.subject = "confirm register";
 
-    transporter.sendMail(mailOptions, function(error, info){
-        if(error)
-            console.log(error);  
-        else
-        {
+    var link = "http://localhost:8080/link?data=" + base64;
+    var title = "Registration";
+
+    var mailText = "<h2>Confirm " + title + "</h2> <hr>"
+        + "<p>Press link to confirm " + title + " :</p>"
+        + "<a href='" + link + "' target='_blank'>" + link + "</a>";//"<div style='text-align: center;'><b>confirm register</b><br>" + "http://localhost:8080/link?data="+base64;
+
+    mailOptions.html = mailText;
+
+    transporter.sendMail(mailOptions, function (error, info) {
+        if (error)
+            console.log(error);
+        else {
             console.log("success sent message");
             res.send("success sent message");
         }
     });
 
+    res.send("http://localhost:8080/link?data=" + base64);
 
-})
-
-app.listen(port, () => {
-	console.log('App listening on port %d!', port);
 });
+
+app.get('/link', function (req, res) {  //login page post action
+
+    if (req.param('data') != undefined) {
+        var type = req.param('type');
+
+        switch (type) {
+            case "reg":     //sign up link
+                var userData = urlCrypt.decryptObj(req.param('data'));
+
+                var { userFirstName, userLastName, userEmail, userPassword, userPromoCode } = userData;
+                client.query('INSERT INTO public.users("Name", "FamilyName", "Email", "PromoCode", "Password") VALUES ($1, $2, $3, $4, $5);', [userFirstName, userLastName, userEmail, userPromoCode, userPassword], (err, respond) => {
+                    if (respond != undefined && respond.rowCount == 1)
+                        res.redirect("/sign-in?new=1");
+                    else {
+                        if (err != undefined && err.message.includes("duplicate key"))
+                            res.redirect("/sign-in?new=3");
+                        else
+                            res.redirect("/sign-in?new=2");
+                    }
+                });
+                break;
+            case "password":
+                res.sendFile(__dirname + "/public/update-password.html",);
+                break;
+            case "passwordnew":
+                var userData = urlCrypt.decryptObj(req.param('data'));
+
+                var { userEmail, userPassword } = userData;
+
+                bcrypt.hash(userPassword, saltRounds, function (err, hash) {  //encrypt password
+                    userPassword = hash;
+
+                    client.query('Update public.users set "Password"=$2 where "Email"=$1;', [userEmail, userPassword], (err, respond) => {
+                        if (respond != undefined && respond.rowCount == 1)
+                            res.redirect("/sign-in?password=0");
+                        else {
+                            res.redirect("/sign-in?password=1");
+                        }
+                    });
+
+                });
+                break;
+            case "emailnew":
+                var userData = urlCrypt.decryptObj(req.param('data'));
+                var { newEmail, prevEmail } = userData;
+
+                client.query('Update public.users set "Email"=$1 where "Email"=$2;', [newEmail, prevEmail], (err, respond) => {
+                    console.log(respond);
+                    if (respond != undefined && respond.rowCount == 1)
+                        res.redirect("/profile?newmail=" + newEmail);
+                    else {
+                        res.redirect("/profile?error");
+                    }
+                });
+                break;
+
+        }
+
+    }
+
+    //var backAgain = urlCrypt.decryptObj(req.param('data'));
+    //console.log(req.param('data'));
+    //res.send(backAgain);
+
+});
+
+
 
