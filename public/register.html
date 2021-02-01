@@ -26,6 +26,30 @@
     <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit" async defer>
     </script>
 
+    <script>
+        $(document).ready(function () {
+
+            const queryString = window.location.search;
+            const urlParams = new URLSearchParams(queryString);
+
+            if (urlParams.has('error')) {
+                var errorValue = urlParams.get('error');
+
+                switch (errorValue) {
+                    case "5":
+                        $("#msgError").addClass("text-danger");
+                        $("#msgError").removeClass("text-success");
+                        $("#userPromoCode").addClass("is-invalid");
+                        $("#msgError").text("Promo code not exist!");
+                        break;
+
+                }
+            }
+
+        });
+
+    </script>
+
 </head>
 
 <body class="bg-gradient-primary">
@@ -43,40 +67,43 @@
                                 <h1 class="h4 text-gray-900 mb-4">Create an Account!</h1>
                             </div>
                             <!-- Register Form -->
-                            <form class="user" method="POST" id="formRegister" name="formRegister" action="/sign-up" onsubmit="return createAccountCheck();">
+                            <form class="user" method="POST" id="formRegister" name="formRegister" action="/sign-up"
+                                onsubmit="return createAccountCheck();">
                                 <div class="form-group row">
                                     <div class="col-sm-6 mb-3 mb-sm-0">
-                                        <input type="text" class="form-control form-control-user" id="userFirstName" name="userFirstName"
-                                            placeholder="First Name">
+                                        <input type="text" class="form-control form-control-user" id="userFirstName"
+                                            name="userFirstName" placeholder="First Name">
                                     </div>
                                     <div class="col-sm-6">
-                                        <input type="text" class="form-control form-control-user" id="userLastName" name="userLastName"
-                                            placeholder="Last Name">
+                                        <input type="text" class="form-control form-control-user" id="userLastName"
+                                            name="userLastName" placeholder="Last Name">
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <input type="email" class="form-control form-control-user" id="userEmail" name="userEmail"
-                                        placeholder="Email Address">
+                                    <input type="email" class="form-control form-control-user" id="userEmail"
+                                        name="userEmail" placeholder="Email Address">
                                 </div>
                                 <div class="form-group row">
                                     <div class="col-sm-6 mb-3 mb-sm-0">
-                                        <input type="password" class="form-control form-control-user"
-                                            id="userPassword" name="userPassword" placeholder="Password">
+                                        <input type="password" class="form-control form-control-user" id="userPassword"
+                                            name="userPassword" placeholder="Password">
                                     </div>
                                     <div class="col-sm-6">
                                         <input type="password" class="form-control form-control-user"
-                                            id="userConfirmPassword" name="userConfirmPassword" placeholder="Repeat Password">
+                                            id="userConfirmPassword" name="userConfirmPassword"
+                                            placeholder="Repeat Password">
                                     </div>
                                 </div>
                                 <div class="form-group row">
                                     <div class="col-sm-6 mb-3 mb-sm-0">
-                                        <input type="text" class="form-control form-control-user"
-                                            id="userPromoCode" name="userPromoCode" placeholder="Have Promo Code">
+                                        <input type="text" class="form-control form-control-user" id="userPromoCode"
+                                            name="userPromoCode" placeholder="Have Promo Code">
                                     </div>
                                 </div>
                                 <div class="m-auto" id="recaptchaBox"></div>
                                 <input type="hidden" value="getResponse">
-                                <button type="submit" class="btn btn-primary btn-user btn-block" value="Login">Register Account</button>
+                                <button type="submit" class="btn btn-primary btn-user btn-block" value="Login">Register
+                                    Account</button>
                                 <div id="msgError" name="msgError" class="text-danger mt-3"></div>
                             </form>
                             <hr>

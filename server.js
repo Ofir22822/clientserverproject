@@ -290,7 +290,7 @@ app.post('/sign-up', function (req, res) {  //register page post action
 
                         }
                         else {
-                            res.redirect("/sign-in?error=5");
+                            res.redirect("/sign-up?error=5");
                         }
 
 
