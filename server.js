@@ -271,18 +271,47 @@ app.post('/sign-up', function (req, res) {  //register page post action
                 var userData = { userFirstName, userLastName, userEmail, userPassword, userPromoCode };
                 var encryptData = urlCrypt.cryptObj(userData);  //encryped user data
 
-                //create link for email
-                var link = siteAddress + "/link?type=reg&data=" + encryptData;
-                var title = "Registration";
+                if (userPromoCode != "") {
+                    client.query('select * from public.promocode where "PromoCode"=$1;', userPromoCode, (err, respond) => {
+                        if (respond != undefined && respond.rowCount == 1) {
 
-                var mailSent = setMail(userEmail, title, link);
+                            //create link for email
+                            var link = siteAddress + "/link?type=reg&data=" + encryptData;
+                            var title = "Registration";
 
-                transporter.sendMail(mailOptions, function (error, info) {
-                    if (error)
-                        res.redirect("/sign-up?error=4");   //return mail not sent
+                            var mailSent = setMail(userEmail, title, link);
 
-                    res.redirect("/sign-in?new=0");     //return success, mail sent
-                });
+                            transporter.sendMail(mailOptions, function (error, info) {
+                                if (error)
+                                    res.redirect("/sign-up?error=4");   //return mail not sent
+
+                                res.redirect("/sign-in?new=0");     //return success, mail sent
+                            });
+
+                        }
+                        else {
+                            res.redirect("/sign-in?error=5");
+                        }
+
+
+                    });
+                }
+                else {
+                    //create link for email
+                    var link = siteAddress + "/link?type=reg&data=" + encryptData;
+                    var title = "Registration";
+
+                    var mailSent = setMail(userEmail, title, link);
+
+                    transporter.sendMail(mailOptions, function (error, info) {
+                        if (error)
+                            res.redirect("/sign-up?error=4");   //return mail not sent
+
+                        res.redirect("/sign-in?new=0");     //return success, mail sent
+                    });
+                }
+
+
             }
             else {   //return error, user already exist
                 res.redirect("/sign-up?error=1");
@@ -358,41 +387,16 @@ app.get('/link', function (req, res) {  //link pages post action
                 var userData = urlCrypt.decryptObj(req.param('data'));
 
                 var { userFirstName, userLastName, userEmail, userPassword, userPromoCode } = userData;
-
-                if (userPromoCode != "") {
-                    client.query('select * from public.promocode where "PromoCode"=$1;', userPromoCode, (err, respond) => {
-                        if (respond != undefined && respond.rowCount == 1) {
-
-                            client.query('INSERT INTO public.users("Name", "FamilyName", "Email", "PromoCode", "Password") VALUES ($1, $2, $3, $4, $5);', [userFirstName, userLastName, userEmail, userPromoCode, userPassword], (err, respond) => {
-                                if (respond != undefined && respond.rowCount == 1)
-                                    res.redirect("/sign-in?new=1");
-                                else {
-                                    if (err != undefined && err.message.includes("duplicate key"))
-                                        res.redirect("/sign-in?new=3");
-                                    else
-                                        res.redirect("/sign-in?new=2");
-                                }
-                            });
-                        }
-                        else {
-                            res.redirect("/sign-in?new=5");
-                        }
-
-
-                    });
-                }
-                else {
-                    client.query('INSERT INTO public.users("Name", "FamilyName", "Email", "PromoCode", "Password") VALUES ($1, $2, $3, $4, $5);', [userFirstName, userLastName, userEmail, userPromoCode, userPassword], (err, respond) => {
-                        if (respond != undefined && respond.rowCount == 1)
-                            res.redirect("/sign-in?new=1");
-                        else {
-                            if (err != undefined && err.message.includes("duplicate key"))
-                                res.redirect("/sign-in?new=3");
-                            else
-                                res.redirect("/sign-in?new=2");
-                        }
-                    });
-                }
+                client.query('INSERT INTO public.users("Name", "FamilyName", "Email", "PromoCode", "Password") VALUES ($1, $2, $3, $4, $5);', [userFirstName, userLastName, userEmail, userPromoCode, userPassword], (err, respond) => {
+                    if (respond != undefined && respond.rowCount == 1)
+                        res.redirect("/sign-in?new=1");
+                    else {
+                        if (err != undefined && err.message.includes("duplicate key"))
+                            res.redirect("/sign-in?new=3");
+                        else
+                            res.redirect("/sign-in?new=2");
+                    }
+                });
                 break;
             case "password":
                 res.sendFile(__dirname + "/public/update-password.html",);
