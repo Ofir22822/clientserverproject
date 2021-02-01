@@ -62,6 +62,26 @@ function parse(str) {   //function for string formatting with %s
     return str.replace(/%s/g, () => args[i++]);
 }
 
+app.use(app.router);
+
+// Since this is the last non-error-handling
+// middleware use()d, we assume 404, as nothing else
+// responded.
+
+// $ curl http://localhost:3000/notfound
+// $ curl http://localhost:3000/notfound -H "Accept: application/json"
+// $ curl http://localhost:3000/notfound -H "Accept: text/plain"
+
+app.use(function(req, res, next){
+  res.status(404);
+
+  // respond with html page
+  if (req.accepts('html')) {
+    res.sendFile(__dirname + "/public/404.html",);
+    return;
+  }
+});
+
 /* -------- get request, show wesite pages */
 
 app.get('/dashboard', function (req, res) {  //default page, dashboard
