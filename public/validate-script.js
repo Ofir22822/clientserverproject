@@ -1,3 +1,10 @@
+var recaptchaBox;
+var onloadCallback = function () {
+    recaptchaBox = grecaptcha.render('recaptchaBox', {
+        'sitekey': '6Le8GRQaAAAAAFKVNVNNWic08gW1AhA5XI49B6SC',
+        'theme': 'light'
+    });
+};
 
 $(document).ready(function () {
 
@@ -236,7 +243,7 @@ function updateDetailsCheck(oldData) {
     msgError.innerText = "";
 
     var flagEmail = emailValid(email);              //valid email, if not valid returns error massage string
- 
+
     if (oldData.Name != "" && firstname.value === "")
         msgError.innerText = "Empty first name!\n";
     if (oldData.FamilyName != "" && lastname.value === "")
@@ -326,6 +333,14 @@ function updatePasswordCheck() {
         return true;
 
     return false;
+}
+
+function checkRecaptcha() {
+    var response = grecaptcha.getResponse(recaptchaBox);
+    if (response.length == 0)
+        return false;
+    else
+        return true;
 }
 
 function contactSubmitCheck() {
