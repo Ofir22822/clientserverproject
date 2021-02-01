@@ -8,7 +8,7 @@ var nodemailer = require('nodemailer');
 var cookieParser = require('cookie-parser');
 var session = require('express-session');
 var urlCrypt = require('url-crypt')('~{ry*I)==yU/]9<7DPk!Hj"R#:-/Z7(hTBnlRS=4CXF');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const saltRounds = 10;
 
 var app = express();
