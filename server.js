@@ -13,7 +13,8 @@ const saltRounds = 10;
 
 var app = express();
 var port = process.env.PORT || 8080;
-var siteAddress = "http://localhost:8080";
+//var siteAddress = "http://localhost:8080";
+var siteAddress = "https://clientserver-heroku-app.herokuapp.com/";
 
 app.use(express.static(__dirname + '/public'));
 app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
