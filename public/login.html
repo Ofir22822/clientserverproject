@@ -104,6 +104,11 @@
 
             if (!check)
                 return false;
+            if (!checkRecaptcha()) {
+                $("#msgError").addClass("text-danger");
+                $("#msgError").removeClass("text-success");
+                $("#msgError").text("Fill Recapche.");
+            }
 
             userEmail = $("#userEmail").val();
             userPassword = $("#userPassword").val();
@@ -201,8 +206,8 @@
                                             </div>
                                         </div>
                                         <div class="text-center">
-                                                <div class="m-auto" id="recaptchaBox"></div>
-                                                <input type="hidden" value="getResponse">
+                                            <div class="m-auto" id="recaptchaBox"></div>
+                                            <input type="hidden" value="getResponse">
                                             <button type="button" class="btn btn-primary btn-user btn-block"
                                                 onclick="loginCheckServer();">Login</button>
                                             <div id="msgError" name="msgError" class="text-danger mt-3"></div>
