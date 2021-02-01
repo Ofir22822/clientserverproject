@@ -23,6 +23,8 @@
     <!-- jQuery library -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="validate-script.js"></script>
+    <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit" async defer>
+    </script>
 
     <script>
         $(document).ready(function () {
@@ -199,6 +201,8 @@
                                             </div>
                                         </div>
                                         <div class="text-center">
+                                                <div class="m-auto" id="recaptchaBox"></div>
+                                                <input type="hidden" value="getResponse">
                                             <button type="button" class="btn btn-primary btn-user btn-block"
                                                 onclick="loginCheckServer();">Login</button>
                                             <div id="msgError" name="msgError" class="text-danger mt-3"></div>
