@@ -23,11 +23,20 @@
           'theme' : 'dark'
         });
       };
+      function check(val){
+      var response = grecaptcha.getResponse(widgetId1);
+
+if(response.length == 0)
+    alert(false);
+
+else
+    alert(true);
+      }
     </script>
   </head>
   <body>
     <!-- The g-recaptcha-response string displays in an alert message upon submit. -->
-    <form action="javascript:alert(grecaptcha.getResponse(widgetId1));">
+    <form onsubmit="check()">
       <div id="example1"></div>
       <br>
       <input type="submit" value="getResponse">
