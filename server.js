@@ -270,9 +270,10 @@ app.post('/sign-up', function (req, res) {  //register page post action
             {
                 var userData = { userFirstName, userLastName, userEmail, userPassword, userPromoCode };
                 var encryptData = urlCrypt.cryptObj(userData);  //encryped user data
-
+                console.log(userPromoCode);
                 if (userPromoCode != "") {
                     client.query('select * from public.promocode where "PromoCode"=$1;', userPromoCode, (err, respond) => {
+                        console.log(respond);
                         if (respond != undefined && respond.rowCount == 1) {
 
                             //create link for email
