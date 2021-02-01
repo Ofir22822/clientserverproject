@@ -62,26 +62,6 @@ function parse(str) {   //function for string formatting with %s
     return str.replace(/%s/g, () => args[i++]);
 }
 
-app.use(app.router);
-
-// Since this is the last non-error-handling
-// middleware use()d, we assume 404, as nothing else
-// responded.
-
-// $ curl http://localhost:3000/notfound
-// $ curl http://localhost:3000/notfound -H "Accept: application/json"
-// $ curl http://localhost:3000/notfound -H "Accept: text/plain"
-
-app.use(function(req, res, next){
-  res.status(404);
-
-  // respond with html page
-  if (req.accepts('html')) {
-    res.sendFile(__dirname + "/public/404.html",);
-    return;
-  }
-});
-
 /* -------- get request, show wesite pages */
 
 app.get('/dashboard', function (req, res) {  //default page, dashboard
@@ -96,11 +76,11 @@ app.get('/sign-up', function (req, res) {  //open register page
     res.sendFile(__dirname + "/public/register.html",);
 });
 
-app.get('/profile', function (req, res) {  //open register page
+app.get('/profile', function (req, res) {  //open profile page
     res.sendFile(__dirname + "/public/profile-details.html",);
 });
 
-/* -------- post request, pages action */
+/* -------- post request, pages action */  // Aa123456!
 
 app.post('/sign-in', function (req, res) {  //login page post action
     console.log(req.body);
@@ -113,7 +93,7 @@ app.post('/sign-in', function (req, res) {  //login page post action
     client.query(query, (err, respond) => {
         console.log(respond);
         if (respond === undefined || respond.rowCount == 0) {    //user not exist, return error
-            res.send({ success: false, error: true, errorUser:true });
+            res.send({ success: false, error: true, errorUser: true });
             res.end();
         }
         else {   //user exist, login user
@@ -132,9 +112,8 @@ app.post('/sign-in', function (req, res) {  //login page post action
                     res.end();
                     //res.redirect("/sign-in");
                 }
-                else
-                {
-                    res.send({ success: false, error: true, errorPassword:true });
+                else {
+                    res.send({ success: false, error: true, errorPassword: true });
                     res.end();
                 }
             });
@@ -143,7 +122,7 @@ app.post('/sign-in', function (req, res) {  //login page post action
 
 });
 
-app.post('/profile', function (req, res) {  //login page post action
+app.post('/profile', function (req, res) {  //profile page post action
     console.log(req.body);
     var { userEmail } = req.body;
     var query = parse('select * from users where "Email"= \'%s\'', userEmail);
@@ -163,7 +142,7 @@ app.post('/profile', function (req, res) {  //login page post action
 
 });
 
-app.post('/profile-save', function (req, res) {  //login page post action Aa123456!
+app.post('/profile-save', function (req, res) {  //profile details save post action
     var { userData } = req.body;
     var userEmail = userData.prevEmail;
 
@@ -218,7 +197,7 @@ app.post('/profile-save', function (req, res) {  //login page post action Aa1234
 
 });
 
-app.post('/change-password', function (req, res) {  //login page post action Aa123456!
+app.post('/change-password', function (req, res) {  //profile password save post action
     var { userEmail, oldPassword, newPassword } = req.body;
 
     console.log(userEmail);
@@ -236,17 +215,17 @@ app.post('/change-password', function (req, res) {  //login page post action Aa1
                     bcrypt.hash(newPassword, saltRounds, function (err, hash) {  //encrypt password
                         newPassword = hash;
 
-                    client.query('Update public.users set "Password"=$1 where "Email"=$2;', [newPassword, userEmail], (err, respond) => {
-                        if (respond != undefined && respond.rowCount == 1) {
-                            res.send({ success: true, error: false, oldpassword: false });
-                            res.end();
-                        }
-                        else {
-                            res.send({ success: false, error: true, oldpassword: false });
-                            res.end();
-                        }
+                        client.query('Update public.users set "Password"=$1 where "Email"=$2;', [newPassword, userEmail], (err, respond) => {
+                            if (respond != undefined && respond.rowCount == 1) {
+                                res.send({ success: true, error: false, oldpassword: false });
+                                res.end();
+                            }
+                            else {
+                                res.send({ success: false, error: true, oldpassword: false });
+                                res.end();
+                            }
+                        });
                     });
-                });
 
                 }
                 else {
@@ -267,35 +246,7 @@ app.post('/change-password', function (req, res) {  //login page post action Aa1
 
 });
 
-app.post('/sign-in2', function (req, res) {  //login page post action
-    var { userEmail, userPassword } = req.body;
-    var user = { "userName": "asd", "userEmail": userEmail };
-    var query = parse('select * from users where "Email"= \'%s\'', userEmail, userPassword);
-
-    client.query(query, (err, respond) => {
-        if (respond === undefined || respond.rowCount == 0) {    //user not exist, return error
-            res.redirect("/sign-in?error");
-        }
-        else {   //user exist, login user
-            hash = respond.rows[0].Password;
-
-            bcrypt.compare(userPassword, hash).then(function (result) {  //compre with encrypted password Aa123456!
-                console.log(result);
-                if (result) {
-                    //res.cookie('user', userEmail);
-                    res.cookie('page_views' + userEmail, user);
-                    res.writeHead(200, { 'Content-Type': 'text/html' });
-                    res.write(JSON.stringify(user));
-                    //res.redirect("/dashboard");
-                }
-                else
-                    res.redirect("/sign-in?error");
-            });
-        }
-    });
-});
-
-function setMail(userEmail, title, link) {
+function setMail(userEmail, title, link) {  //set option for nodemailer mail to send
     mailOptions.to = userEmail;
     mailOptions.subject = "Confirm " + title;
 
@@ -306,7 +257,7 @@ function setMail(userEmail, title, link) {
     mailOptions.html = mailText;
 }
 
-app.post('/sign-up', function (req, res) {  //login page post action
+app.post('/sign-up', function (req, res) {  //register page post action
     var { userFirstName, userLastName, userEmail, userPassword, userPromoCode } = req.body;
 
     var query = parse('select * from users where "Email"= \'%s\'', userEmail);
@@ -342,7 +293,7 @@ app.post('/sign-up', function (req, res) {  //login page post action
     });
 });
 
-app.post('/forgot-password', function (req, res) {  //login page post action
+app.post('/forgot-password', function (req, res) {  //forgot password page post action
     var { userEmail } = req.body;
 
     var query = parse('select * from users where "Email"= \'%s\'', userEmail);
@@ -374,7 +325,7 @@ app.post('/forgot-password', function (req, res) {  //login page post action
 
 });
 
-app.post('/update-password', function (req, res) {  //login page post action Aa123456!
+app.post('/update-password', function (req, res) {  //update password post action
     var { userPassword, userEmail } = req.body;
     var userEmailEncrypt = userEmail;
     userEmail = urlCrypt.decryptObj(userEmail);
@@ -397,77 +348,7 @@ app.post('/update-password', function (req, res) {  //login page post action Aa1
 
 });
 
-
-
-app.get('/test', function (req, res) {  //open register page
-    res.sendFile(__dirname + "/public/test.html",);
-});
-
-app.post('/test', function (req, res) {  //login page post action
-
-    if (!req.body)
-        res.error("Bad Request");
-
-    var { userEmail, userPassword } = req.body;
-    var user = { "data": req.body };
-
-    res.send(JSON.stringify(user));
-});
-
-app.get('/test2', function (req, res) {  //login page post action
-
-    // Get some data
-    var data = { hello: 'world', this: 'is a test', of: 'url-crypt' };
-
-    // Encrypt your data
-    var base64 = urlCrypt.cryptObj(data);
-
-    var strData = JSON.stringify(data);
-    var encryptData;
-    console.log(strData);
-
-    //bcrypt.compareSync("bacon", hash); // true
-    //bcrypt.compareSync("veggies", hash); // false
-
-    // Give it to someone.  It's encrypted so they can't tamper with it
-    // You weren't lazy about your app key were you?
-    console.log(base64);
-    console.log(encryptData);
-
-    // Get it back
-    var backAgain = urlCrypt.decryptObj(base64);
-    console.log(backAgain);
-
-    // Expectations
-    var check = backAgain == data;
-    console.log(check);
-
-    mailOptions.to = emailAdmin;
-    mailOptions.subject = "confirm register";
-
-    var link = "http://localhost:8080/link?data=" + base64;
-    var title = "Registration";
-
-    var mailText = "<h2>Confirm " + title + "</h2> <hr>"
-        + "<p>Press link to confirm " + title + " :</p>"
-        + "<a href='" + link + "' target='_blank'>" + link + "</a>";//"<div style='text-align: center;'><b>confirm register</b><br>" + "http://localhost:8080/link?data="+base64;
-
-    mailOptions.html = mailText;
-
-    transporter.sendMail(mailOptions, function (error, info) {
-        if (error)
-            console.log(error);
-        else {
-            console.log("success sent message");
-            res.send("success sent message");
-        }
-    });
-
-    res.send("http://localhost:8080/link?data=" + base64);
-
-});
-
-app.get('/link', function (req, res) {  //login page post action
+app.get('/link', function (req, res) {  //link pages post action
 
     if (req.param('data') != undefined) {
         var type = req.param('type');
@@ -477,16 +358,41 @@ app.get('/link', function (req, res) {  //login page post action
                 var userData = urlCrypt.decryptObj(req.param('data'));
 
                 var { userFirstName, userLastName, userEmail, userPassword, userPromoCode } = userData;
-                client.query('INSERT INTO public.users("Name", "FamilyName", "Email", "PromoCode", "Password") VALUES ($1, $2, $3, $4, $5);', [userFirstName, userLastName, userEmail, userPromoCode, userPassword], (err, respond) => {
-                    if (respond != undefined && respond.rowCount == 1)
-                        res.redirect("/sign-in?new=1");
-                    else {
-                        if (err != undefined && err.message.includes("duplicate key"))
-                            res.redirect("/sign-in?new=3");
-                        else
-                            res.redirect("/sign-in?new=2");
-                    }
-                });
+
+                if (userPromoCode != "") {
+                    client.query('select * from public.promocode where "PromoCode"=$1;', userPromoCode, (err, respond) => {
+                        if (respond != undefined && respond.rowCount == 1) {
+
+                            client.query('INSERT INTO public.users("Name", "FamilyName", "Email", "PromoCode", "Password") VALUES ($1, $2, $3, $4, $5);', [userFirstName, userLastName, userEmail, userPromoCode, userPassword], (err, respond) => {
+                                if (respond != undefined && respond.rowCount == 1)
+                                    res.redirect("/sign-in?new=1");
+                                else {
+                                    if (err != undefined && err.message.includes("duplicate key"))
+                                        res.redirect("/sign-in?new=3");
+                                    else
+                                        res.redirect("/sign-in?new=2");
+                                }
+                            });
+                        }
+                        else {
+                            res.redirect("/sign-in?new=5");
+                        }
+
+
+                    });
+                }
+                else {
+                    client.query('INSERT INTO public.users("Name", "FamilyName", "Email", "PromoCode", "Password") VALUES ($1, $2, $3, $4, $5);', [userFirstName, userLastName, userEmail, userPromoCode, userPassword], (err, respond) => {
+                        if (respond != undefined && respond.rowCount == 1)
+                            res.redirect("/sign-in?new=1");
+                        else {
+                            if (err != undefined && err.message.includes("duplicate key"))
+                                res.redirect("/sign-in?new=3");
+                            else
+                                res.redirect("/sign-in?new=2");
+                        }
+                    });
+                }
                 break;
             case "password":
                 res.sendFile(__dirname + "/public/update-password.html",);
@@ -531,6 +437,13 @@ app.get('/link', function (req, res) {  //login page post action
     //console.log(req.param('data'));
     //res.send(backAgain);
 
+});
+
+app.use(function (req, res, next) {    //error 404 page
+    res.status(404);
+
+    // respond with html page
+    res.sendFile(__dirname + "/public/404.html",);
 });
 
 
