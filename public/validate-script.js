@@ -60,8 +60,15 @@ function checkEmailValid() {
     var msgError = document.getElementById("msgError");
     var errorEmail = "";
 
-    if (email.value != "" && /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(email.value))
+    if (email.value != "" && /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(email.value)) {
+        if (!checkRecaptcha()) {
+            $("#msgError").addClass("text-danger");
+            $("#msgError").removeClass("text-success");
+            msgError.innerText = "Fill Recapche.";
+            return false;
+        }
         return true;
+    }
 
     errorEmail = "Invalid email address!\n";
     email.classList.add("is-invalid");
@@ -221,6 +228,12 @@ function createAccountCheck() {
         msgError.innerText += "Passwords do not match!"     //add error massage when passwords not matching
         password.classList.add("is-invalid");
         passwordConfirm.classList.add("is-invalid");
+    }
+
+    if (!checkRecaptcha()) {
+        $("#msgError").addClass("text-danger");
+        $("#msgError").removeClass("text-success");
+        msgError.innerText += "Fill Recapche.";
     }
 
     if (msgError.innerText == "")                   //no error massages, fields are valid, show alert
