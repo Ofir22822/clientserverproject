@@ -233,7 +233,7 @@ function createAccountCheck() {
     if (!checkRecaptcha()) {
         $("#msgError").addClass("text-danger");
         $("#msgError").removeClass("text-success");
-        msgError.innerText += "Fill Recapche.";
+        //msgError.innerText += "Fill Recapche.";
     }
 
     if (msgError.innerText == "")                   //no error massages, fields are valid, show alert
