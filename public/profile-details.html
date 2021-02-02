@@ -46,7 +46,7 @@
             }
 
             var userEmail;
-            if (localStorage.getItem("userRemember")=="true")
+            if (localStorage.getItem("userRemember") == "true")
                 userEmail = localStorage.getItem("userEmail");
             else
                 userEmail = sessionStorage.getItem("userEmail");
@@ -158,10 +158,13 @@
                 "ZipCode": $("#userUPZipCode").val()
             }
 
-            if (localStorage.getItem("userRemember")=="true")
+            var remember = localStorage.getItem("userRemember");
+            if (remember == "true") {
                 userData.prevEmail = localStorage.getItem("userEmail");
-            else
+            }
+            else {
                 userData.prevEmail = sessionStorage.getItem("userEmail");
+            }
 
             var prevData = JSON.parse(localStorage.getItem("details"));
 
@@ -180,10 +183,21 @@
                 .then((data) => {
 
                     if (data.success) {
-                        if (data.email)
+
+                        var remember = localStorage.getItem("userRemember");
+                        if (remember == "true") {
+                            localStorage.setItem("userName", userData.Name + " " + userData.FamilyName);
+                        }
+                        else {
+                            sessionStorage.setItem("userName", userData.Name + " " + userData.FamilyName);
+                        }
+
+                        if (data.email) {
                             window.location.replace("/profile?upmail");
-                        else
+                        }
+                        else {
                             window.location.replace("/profile?up");
+                        }
                     }
                     else {
                         msgShow($("#msgError"), "error", "Error in update.");
