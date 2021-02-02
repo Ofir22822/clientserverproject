@@ -84,6 +84,8 @@
                 return false;
             }
 
+            localStorage.setItem("userRemember", $("#userRemember").is(':checked'));
+
             userEmail = $("#userEmail").val();
             userPassword = $("#userPassword").val();
 
@@ -99,8 +101,16 @@
                 .then((data) => {
                     console.log(data);
                     if (data.success) {
-                        localStorage.setItem("userEmail", data.info.Email);
-                        localStorage.setItem("userName", data.info.Name + " " + data.info.FamilyName);
+                        var remember = localStorage.getItem("userRemember");
+
+                        if (remember == "true") { //remember save in localStorage
+                            localStorage.setItem("userEmail", data.info.Email);
+                            localStorage.setItem("userName", data.info.Name + " " + data.info.FamilyName);
+                        }
+                        else {  //no //remember save for one session
+                            sessionStorage.setItem("userEmail", data.info.Email);
+                            sessionStorage.setItem("userName", data.info.Name + " " + data.info.FamilyName);
+                        }
 
                         window.location.replace("/dashboard");
                     }
@@ -152,16 +162,17 @@
                                         </div>
                                         <div class="form-group">
                                             <div class="custom-control custom-checkbox small">
-                                                <input type="checkbox" class="custom-control-input" id="customCheck">
-                                                <label class="custom-control-label" for="customCheck">Remember
+                                                <input type="checkbox" class="custom-control-input" id="userRemember">
+                                                <label class="custom-control-label" for="userRemember">Remember
                                                     Me</label>
                                             </div>
                                         </div>
                                         <div class="text-center">
                                             <div class="text-center">
-                                                <div class="m-auto g-recaptcha" style="margin: 0 auto;" id="recaptchaBox"></div>
+                                                <div class="m-auto g-recaptcha" style="margin: 0 auto;"
+                                                    id="recaptchaBox"></div>
                                             </div>
-                                            
+
                                             <input type="hidden" value="getResponse">
                                             <button type="button" class="btn btn-primary btn-user btn-block"
                                                 onclick="loginCheckServer();">Login</button>
