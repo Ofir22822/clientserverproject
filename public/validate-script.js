@@ -32,6 +32,9 @@ $(document).ready(function () {
             $("#guestMenu").removeClass("d-none");
         }
     });
+	
+	  scaleCaptcha();
+  $(window).resize( $.throttle( 100, scaleCaptcha ) );
 
 });
 
@@ -414,7 +417,7 @@ function scaleCaptcha(elementWidth) {
   // Width of the reCAPTCHA element, in pixels
   var reCaptchaWidth = 304;
   // Get the containing element's width
-	var containerWidth = $('.container').width();
+	var containerWidth = $('.user').width();
   
   // Only scale the reCAPTCHA if it won't fit
   // inside the container
@@ -427,10 +430,3 @@ function scaleCaptcha(elementWidth) {
     });
   }
 }
-
-$(function() { 
- 
-  scaleCaptcha();
-  $(window).resize( $.throttle( 100, scaleCaptcha ) );
-  
-});
