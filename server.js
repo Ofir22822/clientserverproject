@@ -39,7 +39,7 @@ var transporter = nodemailer.createTransport({
     port: 587,
     auth: {
         user: emailAdmin,
-        pass: 'woWOwo6438'    //************* password for email
+        pass: '**'    //************* password for email
     }
 
 

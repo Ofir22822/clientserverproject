@@ -38,6 +38,9 @@ $(document).ready(function () {
             $("#guestMenu").removeClass("d-none");
         }
     });
+	
+	  scaleCaptcha();
+  $(window).resize( $.throttle( 100, scaleCaptcha ) );
 
     // for recapcha, Initialize scaling
     scaleCaptcha();
