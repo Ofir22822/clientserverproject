@@ -37,13 +37,9 @@ var emailAdmin = 'ofir.rahamim@e.braude.ac.il';     //******change username
 var transporter = nodemailer.createTransport({
     host: 'smtp.office365.com',
     port: 587,
-    secure: false,
     auth: {
         user: emailAdmin,
-        pass: '**'    //************* password for email
-    },
-    tls: {
-        rejectUnauthorized: false
+        pass: 'woWOwo6438'    //************* password for email
     }
 });
 var mailOptions = {
@@ -272,7 +268,7 @@ app.post('/sign-up', function (req, res) {  //register page post action
                 var encryptData = urlCrypt.cryptObj(userData);  //encryped user data
                 console.log(userPromoCode);
                 if (userPromoCode != "") {
-                    client.query('select * from public.promocode where "PromoCode"=$1;', userPromoCode, (err, respond) => {
+                    client.query('select * from promocode where "PromoCode"=$1;', [userPromoCode], (err, respond) => {
                         console.log(respond);
                         if (respond != undefined && respond.rowCount == 1) {
 
@@ -293,8 +289,6 @@ app.post('/sign-up', function (req, res) {  //register page post action
                         else {
                             res.redirect("/sign-up?error=5");
                         }
-
-
                     });
                 }
                 else {
@@ -307,8 +301,8 @@ app.post('/sign-up', function (req, res) {  //register page post action
                     transporter.sendMail(mailOptions, function (error, info) {
                         if (error)
                             res.redirect("/sign-up?error=4");   //return mail not sent
-
-                        res.redirect("/sign-in?new=0");     //return success, mail sent
+                        else
+                            res.redirect("/sign-in?new=0");     //return success, mail sent
                     });
                 }
 
@@ -441,6 +435,25 @@ app.get('/link', function (req, res) {  //link pages post action
     //var backAgain = urlCrypt.decryptObj(req.param('data'));
     //console.log(req.param('data'));
     //res.send(backAgain);
+
+});
+
+app.get('/test', function (req, res) {  //forgot password page post action
+                //create link for email
+                var link = siteAddress + "/link?type=password&data=";
+                var title = "Forgot Password";
+    
+                setMail(emailAdmin, title, link);
+    
+                transporter.sendMail(mailOptions, function (error, info) {
+                    if (error)
+                    {
+                        console.log(error);
+                        res.send(error);   //return mail not sent
+                    }
+                    else
+                        res.send("sent");     //return success, mail sent
+                });
 
 });
 
