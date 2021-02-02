@@ -35,7 +35,7 @@
         <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
             <!-- Sidebar - Brand -->
-            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/dashboard">
                 <div class="sidebar-brand-icon rotate-n-15">
                     <i class="fas fa-laugh-wink"></i>
                 </div>
@@ -47,7 +47,7 @@
 
             <!-- Nav Item - Dashboard -->
             <li class="nav-item active">
-                <a class="nav-link" href="index.html">
+                <a class="nav-link" href="/dashboard">
                     <i class="fas fa-fw fa-tachometer-alt"></i>
                     <span>Dashboard</span></a>
             </li>
@@ -62,14 +62,14 @@
 
             <!-- Nav Item - PC -->
             <li class="nav-item">
-                <a class="nav-link" href="#">
+                <a class="nav-link" href="buy-pc.html">
                     <i class="fas fa-fw fa-desktop"></i>
                     <span>PC</span>
                 </a>
             </li>
             <!-- Nav Item - Cell Phone -->
             <li class="nav-item">
-                <a class="nav-link" href="#">
+                <a class="nav-link" href="buy-cell-phone.html">
                     <i class="fas fa-fw fa-mobile-alt"></i>
                     <span>Cell Phone</span>
                 </a>
@@ -140,23 +140,39 @@
                                 </form>
                             </div>
                         </li>
-
-                        <!-- Nav Item - Buy PC -->
                         <div class="topbar-divider d-none d-sm-block"></div>
-                        <li class="nav-item dropdown no-arrow">
-                            <a class="nav-link text-gray-600" href="#" role="button">
-                                Buy PC
+                        <!-- Nav Item - Buy PC -->
+                        <li class="nav-item dropdown no-arrow mx-1">
+                            <a class="nav-link" href="buy-pc.html">
+                                <div class="text-gray-600 d-none d-sm-block text-center">
+                                    Buy PC
+                                </div>
+                                <div class="d-md-none">
+                                    <div class="text-gray-600 small m-0 d-block row">
+                                        Buy PC</div>
+                                    <div class="text-gray-600 m-0 d-block row text-center">
+                                        <i class="fas fa-desktop"></i>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                        <div class="topbar-divider d-none d-sm-block"></div>
+                        <!-- Nav Item - Buy Cell Phone -->
+                        <li class="nav-item dropdown no-arrow mx-1">
+                            <a class="nav-link" href="buy-cell-phone.html">
+                                <div class="text-gray-600 d-none d-sm-block text-center">
+                                    Buy Cell Phone
+                                </div>
+                                <div class="d-md-none d-sm-block">
+                                    <div class="text-gray-600 small m-0 d-block row">
+                                        Buy Phone</div>
+                                    <div class="text-gray-600 m-0 d-block row text-center">
+                                        <i class="fas fa-mobile-alt"></i>
+                                    </div>
+                                </div>
                             </a>
                         </li>
 
-                        <div class="topbar-divider d-none d-sm-block"></div>
-
-                        <!-- Nav Item - Buy PC -->
-                        <li class="nav-item dropdown no-arrow">
-                            <a class="nav-link text-gray-600" href="#" role="button">
-                                Buy Cell Phone
-                            </a>
-                        </li>
                         <div class="topbar-divider d-none d-sm-block"></div>
 
                         <!-- Nav Item - User Information -->
@@ -275,7 +291,9 @@
                 <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                    <a class="btn btn-primary" href="login.html">Logout</a>
+                    <span class="btn btn-primary" onclick="logoutUser()">
+                        Logout
+                    </span>
                 </div>
             </div>
         </div>

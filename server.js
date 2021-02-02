@@ -41,6 +41,7 @@ var transporter = nodemailer.createTransport({
         user: emailAdmin,
         pass: '**'    //************* password for email
     }
+
 });
 var mailOptions = {
     from: emailAdmin,
@@ -76,17 +77,14 @@ app.get('/profile', function (req, res) {  //open profile page
     res.sendFile(__dirname + "/public/profile-details.html",);
 });
 
-/* -------- post request, pages action */  // Aa123456!
+/* -------- post request, pages action */  
 
 app.post('/sign-in', function (req, res) {  //login page post action
     console.log(req.body);
     var { userEmail, userPassword } = req.body;
     var query = parse('select * from users where "Email"= \'%s\'', userEmail);
 
-    //res.send({ success: true, error: false, info: user });
-    //res.end();
-
-    client.query(query, (err, respond) => {
+    client.query(query, (err, respond) => {     //query to check user email
         console.log(respond);
         if (respond === undefined || respond.rowCount == 0) {    //user not exist, return error
             res.send({ success: false, error: true, errorUser: true });
@@ -96,17 +94,11 @@ app.post('/sign-in', function (req, res) {  //login page post action
             hash = respond.rows[0].Password;
             var user = respond.rows[0];
 
-            bcrypt.compare(userPassword, hash).then(function (result) {  //compre with encrypted password Aa123456!
+            bcrypt.compare(userPassword, hash).then(function (result) {  //compre with encrypted password
                 console.log(result);
                 if (result) {
-                    //res.cookie('user', userEmail);
-                    //res.cookie('page_views'+userEmail, user);
-                    //var data = JSON.stringify(user);
-                    //res.writeHead(200, { 'Data-Type': 'json' , 'Data': data});
-                    //res.write(JSON.stringify(user));
                     res.send({ success: true, error: false, info: user });
                     res.end();
-                    //res.redirect("/sign-in");
                 }
                 else {
                     res.send({ success: false, error: true, errorPassword: true });
@@ -123,7 +115,7 @@ app.post('/profile', function (req, res) {  //profile page post action
     var { userEmail } = req.body;
     var query = parse('select * from users where "Email"= \'%s\'', userEmail);
 
-    client.query(query, (err, respond) => {
+    client.query(query, (err, respond) => { //query to check user email
 
         if (respond === undefined || respond.rowCount == 0) {    //user not exist, return error
             res.send({ success: false, error: true, info: null });
@@ -144,13 +136,11 @@ app.post('/profile-save', function (req, res) {  //profile details save post act
 
     var mailInfo;
 
-    console.log(userData);
-    console.log(userData.Email);
-    if (userEmail != userData.Email) {
+    if (userEmail != userData.Email) {  //check if email was change
         var emailData = { "newEmail": userData.Email, "prevEmail": userEmail }
         var encryptData = urlCrypt.cryptObj(emailData);  //encryped user data
 
-        //create link for email
+        //create link for email, confirm email change
         var link = siteAddress + "/link?type=emailnew&data=" + encryptData;
         var title = "Email Change";
 
@@ -161,7 +151,7 @@ app.post('/profile-save', function (req, res) {  //profile details save post act
                 res.send({ success: false, error: true });
                 res.end();
             }
-
+            //update fields, without email, confirm email update in link
             client.query('Update public.users set "Name"=$1, "FamilyName"=$2, "PhoneNumber"=$3, "Country"=$4, "City"=$5, "Street"=$6, "ZipCode"=$7 where "Email"=$8;', [userData.Name, userData.FamilyName, userData.PhoneNumber, userData.Country, userData.City, userData.Street, userData.ZipCode, userData.prevEmail], (err, respond) => {
                 console.log(respond);
                 console.log(err);
@@ -176,7 +166,7 @@ app.post('/profile-save', function (req, res) {  //profile details save post act
             });
         });
     }
-    else {
+    else {  //no email change, no mail link sent, update details
         client.query('Update public.users set "Name"=$1, "FamilyName"=$2, "PhoneNumber"=$3, "Country"=$4, "City"=$5, "Street"=$6, "ZipCode"=$7 where "Email"=$8;', [userData.Name, userData.FamilyName, userData.PhoneNumber, userData.Country, userData.City, userData.Street, userData.ZipCode, userData.prevEmail], (err, respond) => {
             console.log(respond);
             console.log(err);
@@ -201,14 +191,14 @@ app.post('/change-password', function (req, res) {  //profile password save post
     console.log(newPassword);
     var query = parse('select * from users where "Email"= \'%s\'', userEmail);
 
-    client.query(query, (err, respond) => {
+    client.query(query, (err, respond) => { //query to check user email
 
-        if (respond === undefined || respond.rowCount == 1) {    //user not exist, return error
+        if (respond === undefined || respond.rowCount == 1) {    //user exist
 
             var hash = respond.rows[0].Password;
-            bcrypt.compare(oldPassword, hash).then(function (result) {  //compre with encrypted password Aa123456!
-                if (result) {
-                    bcrypt.hash(newPassword, saltRounds, function (err, hash) {  //encrypt password
+            bcrypt.compare(oldPassword, hash).then(function (result) {  //compre old pssword with encrypted password in DB (Aa123456! was password for testing)
+                if (result) {  
+                    bcrypt.hash(newPassword, saltRounds, function (err, hash) {  //encrypt new password
                         newPassword = hash;
 
                         client.query('Update public.users set "Password"=$1 where "Email"=$2;', [newPassword, userEmail], (err, respond) => {
@@ -231,7 +221,7 @@ app.post('/change-password', function (req, res) {  //profile password save post
             });
 
         }
-        else {   //user exist, return user details
+        else {   //user not exist, return user details
             res.send({ success: false, error: true, oldpassword: false });
             res.end();
         }
@@ -261,18 +251,18 @@ app.post('/sign-up', function (req, res) {  //register page post action
     bcrypt.hash(userPassword, saltRounds, function (err, hash) {  //encrypt password
         userPassword = hash;
 
-        client.query(query, (err, respond) => {
+        client.query(query, (err, respond) => { //query to check if user email exist
             if (respond === undefined || respond.rowCount == 0) //user not exist, add user to database
             {
                 var userData = { userFirstName, userLastName, userEmail, userPassword, userPromoCode };
                 var encryptData = urlCrypt.cryptObj(userData);  //encryped user data
-                console.log(userPromoCode);
-                if (userPromoCode != "") {
+                
+                if (userPromoCode != "") {  //there is promo code to check in DB
                     client.query('select * from promocode where "PromoCode"=$1;', [userPromoCode], (err, respond) => {
-                        console.log(respond);
-                        if (respond != undefined && respond.rowCount == 1) {
+                        
+                        if (respond != undefined && respond.rowCount == 1) {    //promo code is valid, exist in DB
 
-                            //create link for email
+                            //create link for email, confirm user sign up
                             var link = siteAddress + "/link?type=reg&data=" + encryptData;
                             var title = "Registration";
 
@@ -286,13 +276,13 @@ app.post('/sign-up', function (req, res) {  //register page post action
                             });
 
                         }
-                        else {
-                            res.redirect("/sign-up?error=5");
+                        else {  //promo code not in DB
+                            res.redirect("/sign-up?error=6");
                         }
                     });
                 }
-                else {
-                    //create link for email
+                else {  //promo code empty
+                    //create link for email, confirm user sign up 
                     var link = siteAddress + "/link?type=reg&data=" + encryptData;
                     var title = "Registration";
 
@@ -322,13 +312,13 @@ app.post('/forgot-password', function (req, res) {  //forgot password page post 
 
     var query = parse('select * from users where "Email"= \'%s\'', userEmail);
 
-    client.query(query, (err, respond) => {
+    client.query(query, (err, respond) => { //check if user exist
         if (respond === undefined || respond.rowCount == 1) //user exist
         {
             var userData = userEmail;
             var encryptData = urlCrypt.cryptObj(userData);  //encryped user data
 
-            //create link for email
+            //create link for email, confirm new password
             var link = siteAddress + "/link?type=password&data=" + encryptData;
             var title = "Forgot Password";
 
@@ -352,12 +342,12 @@ app.post('/forgot-password', function (req, res) {  //forgot password page post 
 app.post('/update-password', function (req, res) {  //update password post action
     var { userPassword, userEmail } = req.body;
     var userEmailEncrypt = userEmail;
-    userEmail = urlCrypt.decryptObj(userEmail);
+    userEmail = urlCrypt.decryptObj(userEmail); //get user email from encrypted url
 
     var userData = { userEmail, userPassword };
     var encryptData = urlCrypt.cryptObj(userData);  //encryped user data
 
-    //create link for email
+    //create link for email, confirm new password update
     var link = siteAddress + "/link?type=passwordnew&data=" + encryptData;
     var title = "Password Change";
 
@@ -378,7 +368,7 @@ app.get('/link', function (req, res) {  //link pages post action
         var type = req.param('type');
 
         switch (type) {
-            case "reg":     //sign up link
+            case "reg":     //sign up link, add user to DB
                 var userData = urlCrypt.decryptObj(req.param('data'));
 
                 var { userFirstName, userLastName, userEmail, userPassword, userPromoCode } = userData;
@@ -393,10 +383,10 @@ app.get('/link', function (req, res) {  //link pages post action
                     }
                 });
                 break;
-            case "password":
+            case "password":    //forgot password link, go to update
                 res.sendFile(__dirname + "/public/update-password.html",);
                 break;
-            case "passwordnew":
+            case "passwordnew": //update new password in DB
                 var userData = urlCrypt.decryptObj(req.param('data'));
 
                 var { userEmail, userPassword } = userData;
@@ -414,7 +404,7 @@ app.get('/link', function (req, res) {  //link pages post action
 
                 });
                 break;
-            case "emailnew":
+            case "emailnew":    //new email link, update in DB
                 var userData = urlCrypt.decryptObj(req.param('data'));
                 var { newEmail, prevEmail } = userData;
 
@@ -431,29 +421,6 @@ app.get('/link', function (req, res) {  //link pages post action
         }
 
     }
-
-    //var backAgain = urlCrypt.decryptObj(req.param('data'));
-    //console.log(req.param('data'));
-    //res.send(backAgain);
-
-});
-
-app.get('/test', function (req, res) {  //forgot password page post action
-                //create link for email
-                var link = siteAddress + "/link?type=password&data=";
-                var title = "Forgot Password";
-    
-                setMail(emailAdmin, title, link);
-    
-                transporter.sendMail(mailOptions, function (error, info) {
-                    if (error)
-                    {
-                        console.log(error);
-                        res.send(error);   //return mail not sent
-                    }
-                    else
-                        res.send("sent");     //return success, mail sent
-                });
 
 });
 

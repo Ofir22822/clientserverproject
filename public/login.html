@@ -34,45 +34,25 @@
             const created = urlParams.get('error');
 
             if (urlParams.has('error')) {
-                /*
-                // Store
-                sessionStorage.setItem("lastname", "Smith");
-                // Retrieve
-                console.log(sessionStorage.getItem("lastname"));
-                // Store
-                localStorage.setItem("lastname", "Smith2");
-                // Retrieve
-                console.log(localStorage.getItem("lastname"));
-                localStorage.removeItem("lastname");
-                */
-                $("#msgError").addClass("text-danger");
                 $("input[id^='user']").addClass("is-invalid");
-                var msgError = document.getElementById("msgError");
-                msgError.innerText += "incorrect email or password for user";
+                msgShow($("#msgError"), "error", "Incorrect email or password for user");
             }
 
             if (urlParams.has('new')) {
                 var newValue = urlParams.get('new');
 
-                $("#msgError").removeClass("text-danger");
-                $("#msgError").addClass("text-success");
-
                 switch (newValue) {
                     case "0":
-                        $("#msgError").text("Verification mail sent to email, confirm before login.");
+                        msgShow($("#msgError"), "success", "Verification mail sent to email, confirm before login.");
                         break;
                     case "1":
-                        $("#msgError").text("User created you can now login.");
+                        msgShow($("#msgError"), "success", "User created you can now login.");
                         break;
                     case "2":
-                        $("#msgError").addClass("text-danger");
-                        $("#msgError").removeClass("text-success");
-                        $("#msgError").text("Error in DB, try to click link again.");
+                        msgShow($("#msgError"), "error", "Error in DB, try to click link again.");
                         break;
                     case "3":
-                        $("#msgError").addClass("text-danger");
-                        $("#msgError").removeClass("text-success");
-                        $("#msgError").text("Error, user already exist.");
+                        msgShow($("#msgError"), "error", "Error, user already exist.");
                         break;
                 }
             }
@@ -82,19 +62,14 @@
 
                 switch (passwordValue) {
                     case "0":
-                        $("#msgError").removeClass("text-danger");
-                        $("#msgError").addClass("text-success");
-                        $("#msgError").text("Password was changed, you can now login.");
+                        msgShow($("#msgError"), "success", "Password was changed, you can now login.");
                         break;
                     case "1":
-                        $("#msgError").addClass("text-danger");
-                        $("#msgError").removeClass("text-success");
-                        $("#msgError").text("Error, try clicking on link again.");
+                        msgShow($("#msgError"), "error", "Error, try clicking on link again.");
                         break;
 
                 }
             }
-
 
         });
 
@@ -105,9 +80,7 @@
             if (!check)
                 return false;
             if (!checkRecaptcha()) {
-                $("#msgError").addClass("text-danger");
-                $("#msgError").removeClass("text-success");
-                $("#msgError").text("Fill Recapche.");
+                msgShow($("#msgError"), "error", "Fill Recapche.");
                 return false;
             }
 
@@ -133,36 +106,14 @@
                     }
                     if (data.error) {
                         if (data.errorPassword) {
-                            $("#msgError").addClass("text-danger");
-                            $("#msgError").removeClass("text-success");
-                            $("#msgError").text("Password is inccorect.");
+                            msgShow($("#msgError"), "error", "Password is inccorect.");
                         }
                         if (data.errorUser) {
-                            $("#msgError").addClass("text-danger");
-                            $("#msgError").removeClass("text-success");
-                            $("#msgError").text("User email is incorrect.");
+                            msgShow($("#msgError"), "error", "User email is incorrect.");
                         }
                     }
 
                 });
-
-
-            /*
-            $.ajax({
-                url: '/sign-in',
-                type: 'POST',
-                data: $('#formLogin').serialize(),
-                dataType: 'json',
-                contentType: false,
-                success: function (response) {
-                $("#msgError").append("<br>");
-                $("#msgError").append(response);
-            },
-            error: function (xhr, status, errmsg) {
-                alert(errmsg + "  " + status);
-            }
-            });
-            */
 
         }
 
@@ -207,7 +158,10 @@
                                             </div>
                                         </div>
                                         <div class="text-center">
-                                            <div class="m-auto g-recaptcha container-fluid" id="recaptchaBox"></div>
+                                            <div class="text-center">
+                                                <div class="m-auto g-recaptcha" style="margin: 0 auto;" id="recaptchaBox"></div>
+                                            </div>
+                                            
                                             <input type="hidden" value="getResponse">
                                             <button type="button" class="btn btn-primary btn-user btn-block"
                                                 onclick="loginCheckServer();">Login</button>
