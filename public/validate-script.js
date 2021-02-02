@@ -425,8 +425,19 @@ function scaleCaptcha(elementWidth) {
     // Calculate the scale
     var captchaScale = containerWidth / reCaptchaWidth;
     // Apply the transformation
-    $('.g-recaptcha').css({
+    $('.g-recaptcha-response').css({
       'transform':'scale('+captchaScale+')'
     });
   }
 }
+
+$(function() { 
+ 
+  // Initialize scaling
+  scaleCaptcha();
+  
+  // Update scaling on window resize
+  // Uses jQuery throttle plugin to limit strain on the browser
+  $(window).resize( $.throttle( 100, scaleCaptcha ) );
+  
+});
