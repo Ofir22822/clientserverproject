@@ -39,13 +39,17 @@
             }
             if (urlParams.has('newmail')) {
                 msgShow($("#msgError"), "success", "Email was changed.");
-                localStorage.setItem("userEmail", urlParams.get('newmail'));
+                sessionStorage.setItem("userEmail", urlParams.get('newmail'));
             }
             if (urlParams.has('password')) {
                 msgShow($("#msgErrorPassword"), "success", "Updated user password.");
             }
 
-            var userEmail = localStorage.getItem("userEmail");
+            var userEmail;
+            if (localStorage.getItem("userRemember")=="true")
+                userEmail = localStorage.getItem("userEmail");
+            else
+                userEmail = sessionStorage.getItem("userEmail");
 
             if (userEmail) {
                 //fetch to get user 
@@ -143,7 +147,7 @@
         function saveDetailsClick() {
 
             var userData = {
-                "prevEmail": localStorage.getItem("userEmail"),
+                "prevEmail": "",
                 "Name": $("#userUPFirstName").val(),
                 "FamilyName": $("#userUPLastName").val(),
                 "PhoneNumber": $("#userUPPhone").val(),
@@ -153,6 +157,11 @@
                 "Street": $("#userUPStreet").val(),
                 "ZipCode": $("#userUPZipCode").val()
             }
+
+            if (localStorage.getItem("userRemember")=="true")
+                userData.prevEmail = localStorage.getItem("userEmail");
+            else
+                userData.prevEmail = sessionStorage.getItem("userEmail");
 
             var prevData = JSON.parse(localStorage.getItem("details"));
 
@@ -209,15 +218,15 @@
                         window.location.replace("/profile?password");
                     }
 
-                    if(data.error){
-                    if (data.oldpassword) {
-                        $("#userPassword").addClass("is-invalid");
-                        msgShow($("#msgErrorPassword"), "error", "Old password is incorrect.");
+                    if (data.error) {
+                        if (data.oldpassword) {
+                            $("#userPassword").addClass("is-invalid");
+                            msgShow($("#msgErrorPassword"), "error", "Old password is incorrect.");
+                        }
+                        else {
+                            msgShow($("#msgErrorPassword"), "error", "Error in update. try again.");
+                        }
                     }
-                    else {
-                        msgShow($("#msgErrorPassword"), "error", "Error in update. try again.");
-                    }
-                }
 
                 });
         }

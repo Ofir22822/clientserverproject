@@ -1,5 +1,5 @@
 var recaptchaBox;
-var isLocal = true;
+var isLocal = false;
 var onloadCallback = function () {
     recaptchaBox = grecaptcha.render('recaptchaBox', {
         'sitekey': '6Le8GRQaAAAAAFKVNVNNWic08gW1AhA5XI49B6SC',
@@ -21,7 +21,12 @@ $(document).ready(function () {
     });
 
     $(document).ready(function () {
-        var username = localStorage.getItem("userName");
+        var username;
+        if (localStorage.getItem("userRemember")=="true")
+            username = localStorage.getItem("userName");
+        else
+            username = sessionStorage.getItem("userName");
+
         if (username != null) {
             $("#username").text(username);
             $("#userMenu").removeClass("d-none");
@@ -48,6 +53,7 @@ $(document).ready(function () {
 
 function logoutUser() {
     localStorage.clear();
+    sessionStorage.clear();
     window.location.reload();
 }
 
@@ -239,38 +245,31 @@ function updateDetailsCheck(oldData) {
 
     var flagEmail = emailValid(email);              //valid email, if not valid returns error massage string
 
-    if (oldData.Name != '' && firstname.value === "")
-    {
+    if (oldData.Name != '' && firstname.value === "") {
         $(firstname).addClass("is-invalid");
         msgError.innerText = "Empty first name!\n";
     }
-    if (oldData.FamilyName != '' && lastname.value === "")
-    {
+    if (oldData.FamilyName != '' && lastname.value === "") {
         $(lastname).addClass("is-invalid");
         msgError.innerText += "Empty last name!\n";
     }
-    if (oldData.PhoneNumber != '' && phone.value === "")
-    {
+    if (oldData.PhoneNumber != '' && phone.value === "") {
         $(phone).addClass("is-invalid");
         msgError.innerText += "Empty phone number!\n";
     }
-    if (oldData.Country != '' && country.value === "")
-    {
+    if (oldData.Country != '' && country.value === "") {
         $(country).addClass("is-invalid");
         msgError.innerText += "Empty country!\n";
     }
-    if (oldData.City != '' && city.value === "")
-    {
+    if (oldData.City != '' && city.value === "") {
         $(city).addClass("is-invalid");
         msgError.innerText += "Empty city!\n";
     }
-    if (oldData.Street != '' && street.value === "")
-    {
+    if (oldData.Street != '' && street.value === "") {
         $(street).addClass("is-invalid");
         msgError.innerText += "Empty street!\n";
     }
-    if (oldData.ZipCode != '' && zipcode.value === "")
-    {
+    if (oldData.ZipCode != '' && zipcode.value === "") {
         $(zipcode).addClass("is-invalid");
         msgError.innerText += "Empty zip code!\n";
     }

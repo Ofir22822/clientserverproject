@@ -13,8 +13,8 @@ const saltRounds = 10;
 
 var app = express();
 var port = process.env.PORT || 8080;
-//var siteAddress = "http://localhost:8080";
-var siteAddress = "https://clientserver-heroku-app.herokuapp.com";
+var siteAddress = "http://localhost:8080";
+//var siteAddress = "https://clientserver-heroku-app.herokuapp.com";
 
 app.use(express.static(__dirname + '/public'));
 app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
@@ -25,8 +25,8 @@ app.use(session({ secret: "Shh, its a secret!" }));
 
 //connect to database
 const { Pool, Client } = require('pg')          // \/-password
-//const connectionString = 'postgressql://postgres:123456@localhost:5432/projectDB'
-const connectionString = 'postgres://mljdwduwquxtfb:60b3e7a165b4b9f79ff8a0674cc898c3ccc5cbd8eedce5d81796a9788f7f8b30@ec2-52-208-138-246.eu-west-1.compute.amazonaws.com:5432/daicv71v0u3vqi'
+const connectionString = 'postgressql://postgres:123456@localhost:5432/projectDB'
+//const connectionString = 'postgres://mljdwduwquxtfb:60b3e7a165b4b9f79ff8a0674cc898c3ccc5cbd8eedce5d81796a9788f7f8b30@ec2-52-208-138-246.eu-west-1.compute.amazonaws.com:5432/daicv71v0u3vqi'
 const client = new Client({
     connectionString: connectionString
 });
@@ -41,6 +41,7 @@ var transporter = nodemailer.createTransport({
         user: emailAdmin,
         pass: '**'    //************* password for email
     }
+
 
 });
 var mailOptions = {
