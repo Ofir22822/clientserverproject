@@ -1,4 +1,5 @@
 var recaptchaBox;
+var isLocal = true;
 var onloadCallback = function () {
     recaptchaBox = grecaptcha.render('recaptchaBox', {
         'sitekey': '6Le8GRQaAAAAAFKVNVNNWic08gW1AhA5XI49B6SC',
@@ -33,6 +34,13 @@ $(document).ready(function () {
         }
     });
 
+    // for recapcha, Initialize scaling
+    scaleCaptcha();
+
+    // Update scaling on window resize
+    // Uses jQuery throttle plugin to limit strain on the browser
+    $(window).resize(scaleCaptcha);
+
 });
 
 function logoutUser() {
@@ -50,7 +58,7 @@ function emailValid(email) {
     if (email.value != "" && /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(email.value))
         return true;
 
-    errorEmail = "Invalid email address!\n";
+    errorEmail = "Invalid email address!<br>";
 
     return errorEmail;
 }
@@ -62,17 +70,14 @@ function checkEmailValid() {
 
     if (email.value != "" && /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(email.value)) {
         if (!checkRecaptcha()) {
-            $("#msgError").addClass("text-danger");
-            $("#msgError").removeClass("text-success");
-            msgError.innerText = "Fill Recapche.";
+            msgShow($("#msgError"), "error", "Fill Recapche.");
             return false;
         }
         return true;
     }
 
-    errorEmail = "Invalid email address!\n";
     email.classList.add("is-invalid");
-    msgError.innerText += errorEmail;
+    msgShow($("#msgError"), "error", "Invalid email address!");
 
     return false;
 }
@@ -80,23 +85,25 @@ function checkEmailValid() {
 function checkPasswordValid() {
     var password = document.getElementById("userPassword");
     var passwordConfirm = document.getElementById("userConfirmPassword");
-    var msgError = document.getElementById("msgError");
+    var msgError = "";
 
     if (password.value == passwordConfirm.value) {  //check passwords are matching, if matching valid password
         flagPassword = passwordValid(password);     //valid password, if not valid returns error massage string
         if (flagPassword != true) {                 //add error massage if password invalid, and change field border to red
-            msgError.innerText = "\nInvalid password! password must contain:\n";
-            msgError.innerText += flagPassword;
+            msgError = "<br>Invalid password! password must contain:<br>";
+            msgError += flagPassword;
             password.classList.add("is-invalid");
         }
         else
             return true;
     }
     else {
-        msgError.innerText = "Passwords do not match!"     //add error massage when passwords not matching
+        msgError = "Passwords do not match!"     //add error massage when passwords not matching
         password.classList.add("is-invalid");
         passwordConfirm.classList.add("is-invalid");
     }
+
+    msgShow($("#msgError"), "error", msgError);
 
     return false;
 }
@@ -108,13 +115,13 @@ function checkPasswordValid() {
 function passwordValid(password) {
     var errorPassword = "";
 
-    errorPassword += !(password.value.length >= 6) ? "Minimum 6 letters.\n" : "";
+    errorPassword += !(password.value.length >= 6) ? "Minimum 6 letters.<br>" : "";
 
-    errorPassword += !(/[a-z]/.test(password.value)) ? "Lowercase letters.\n" : "";
+    errorPassword += !(/[a-z]/.test(password.value)) ? "Lowercase letters.<br>" : "";
 
-    errorPassword += !(/[A-Z]/.test(password.value)) ? "Uppercase letters.\n" : "";
+    errorPassword += !(/[A-Z]/.test(password.value)) ? "Uppercase letters.<br>" : "";
 
-    errorPassword += !(/[0-9]/.test(password.value)) ? "Include Number.\n" : "";
+    errorPassword += !(/[0-9]/.test(password.value)) ? "Include Number.<br>" : "";
 
     errorPassword += !(/[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password.value)) ? "Special Character letters." : "";
 
@@ -128,59 +135,33 @@ function passwordValid(password) {
  * check login form fields, show alert if fields are valid
  * */
 function loginCheck() {
-    var msgError = document.getElementById("msgError");
+    var msgError = "";
     var email = document.getElementById("userEmail");
     var password = document.getElementById("userPassword");
 
     var flagEmail = emailValid(email);              //valid email, if not valid returns error massage string
     var flagPassword = passwordValid(password);     //valid password, if not valid returns error massage string
 
-    msgError.innerText = "";
-
     if (flagEmail != true) {                        //add error massage if email invalid, and change field border to red
-        msgError.innerText += flagEmail;
+        msgError += flagEmail;
         email.classList.add("is-invalid");
     }
     else
         email.classList.remove("is-invalid");        //if valid remove red border
 
     if (flagPassword != true) {                     //add error massage if password invalid, and change field border to red
-        msgError.innerText += "\nInvalid password! password must contain:\n";
-        msgError.innerText += flagPassword;
+        msgError += "<br>Invalid password! password must contain:<br>";
+        msgError += flagPassword;
         password.classList.add("is-invalid");
     }
     else
         password.classList.remove("is-invalid");     //if valid remove red border
 
-    if (msgError.innerText == "") {
-        /*
-        $.ajax({
-            url: '/sign-in',
-            type: 'POST',
-            data: $('#formLogin').serialize(),
-            dataType: 'json',
-            contentType: false,
-            processData: false,
-            success: function (response) {
-                $("#msgError").append("<br>");
-                $("#msgError").append(response);
-            },
-            error: function (xhr, status, errmsg) {
-                alert(errmsg + "  " + status);
-            }
-        }).done(function (result) {
-            console.log(result);
-            if(result != undefined){
-                console.log(result);
-                localStorage.setItem("userEmail", result.userEmail);
-                console.log(localStorage.getItem("userEmail"));
-                window.replace("/dashboard");
-            }
-        });
-        */
+    if (msgError == "") {
         return true;
     }
 
+    msgShow($("#msgError"), "error", msgError);
     return false;
 }
 
@@ -188,7 +169,7 @@ function loginCheck() {
  * check sing up form fields, show alert if fields are valid
  * */
 function createAccountCheck() {
-    var msgError = document.getElementById("msgError");
+    var msgError = "";
     var firstname = document.getElementById("userFirstName");
     var lastname = document.getElementById("userLastName");
     var email = document.getElementById("userEmail");
@@ -196,48 +177,46 @@ function createAccountCheck() {
     var passwordConfirm = document.getElementById("userConfirmPassword");
     var promoCode = document.getElementById("userPromoCode");
 
-    msgError.innerText = "";
-
     var flagEmail = emailValid(email);              //valid email, if not valid returns error massage string
     var flagPassword;
 
     if (firstname.value == "") {
-        msgError.innerText += "Invalid first name!\n";
+        msgError += "Invalid first name!<br>";
         firstname.classList.add("is-invalid");
     }
 
     if (lastname.value == "") {
-        msgError.innerText += "Invalid last name!\n";
+        msgError += "Invalid last name!<br>";
         lastname.classList.add("is-invalid");
     }
 
     if (flagEmail != true) {                        //add error massage if email invalid, and change field border to red
-        msgError.innerText += flagEmail;
+        msgError += flagEmail;
         email.classList.add("is-invalid");
     }
 
     if (password.value == passwordConfirm.value) {  //check passwords are matching, if matching valid password
         flagPassword = passwordValid(password);     //valid password, if not valid returns error massage string
         if (flagPassword != true) {                 //add error massage if password invalid, and change field border to red
-            msgError.innerText += "\nInvalid password! password must contain:\n";
-            msgError.innerText += flagPassword;
+            msgError += "<br>Invalid password! password must contain:<br>";
+            msgError += flagPassword;
             password.classList.add("is-invalid");
         }
     }
     else {
-        msgError.innerText += "Passwords do not match!"     //add error massage when passwords not matching
+        msgError += "Passwords do not match!"     //add error massage when passwords not matching
         password.classList.add("is-invalid");
         passwordConfirm.classList.add("is-invalid");
     }
 
     if (!checkRecaptcha()) {
-        $("#msgError").addClass("text-danger");
-        $("#msgError").removeClass("text-success");
-        //msgError.innerText += "Fill Recapche.";
+        msgError += "Fill Recapche.";
     }
 
-    if (msgError.innerText == "")                   //no error massages, fields are valid, show alert
+    if (msgError == "")                   //no error massages, fields are valid, show alert
         return true;
+
+    msgShow($("#msgError"), "error", msgError);
 
     return false;
 }
@@ -257,20 +236,41 @@ function updateDetailsCheck(oldData) {
 
     var flagEmail = emailValid(email);              //valid email, if not valid returns error massage string
 
-    if (oldData.Name != "" && firstname.value === "")
+    if (oldData.Name != '' && firstname.value === "")
+    {
+        $(firstname).addClass("is-invalid");
         msgError.innerText = "Empty first name!\n";
-    if (oldData.FamilyName != "" && lastname.value === "")
+    }
+    if (oldData.FamilyName != '' && lastname.value === "")
+    {
+        $(lastname).addClass("is-invalid");
         msgError.innerText += "Empty last name!\n";
-    if (oldData.PhoneNumber != "" && phone.value === "")
+    }
+    if (oldData.PhoneNumber != '' && phone.value === "")
+    {
+        $(phone).addClass("is-invalid");
         msgError.innerText += "Empty phone number!\n";
-    if (oldData.Country != "" && country.value === "")
+    }
+    if (oldData.Country != '' && country.value === "")
+    {
+        $(country).addClass("is-invalid");
         msgError.innerText += "Empty country!\n";
-    if (oldData.City != "" && city.value === "")
+    }
+    if (oldData.City != '' && city.value === "")
+    {
+        $(city).addClass("is-invalid");
         msgError.innerText += "Empty city!\n";
-    if (oldData.Street != "" && street.value === "")
+    }
+    if (oldData.Street != '' && street.value === "")
+    {
+        $(street).addClass("is-invalid");
         msgError.innerText += "Empty street!\n";
-    if (oldData.ZipCode != "" && zipcode.value === "")
+    }
+    if (oldData.ZipCode != '' && zipcode.value === "")
+    {
+        $(zipcode).addClass("is-invalid");
         msgError.innerText += "Empty zip code!\n";
+    }
 
     if (flagEmail != true) {                        //add error massage if email invalid, and change field border to red
         msgError.innerText += flagEmail;
@@ -282,8 +282,7 @@ function updateDetailsCheck(oldData) {
     if (msgError.innerText == "")                   //no error massages, fields are valid, show alert
         return true;
 
-    $("#msgError").addClass("text-danger");
-    $("#msgError").removeClass("text-success");
+    msgShow($("#msgError"), "error", msgError.innerText.replace("\n", "<br>"));
     return false;
 }
 
@@ -309,6 +308,7 @@ function changePasswordCheck() {
         passwordNewConfirm.classList.add("is-invalid");
     }
 
+    msgShow($("#msgErrorPassword"), "error", msgError.innerText.replace("\n", "<br>"));
     return false;
 }
 
@@ -351,7 +351,7 @@ function updatePasswordCheck() {
 function checkRecaptcha() {
     var response = grecaptcha.getResponse(recaptchaBox);
     if (response.length == 0)
-        return false;
+        return false || isLocal;
     else
         return true;
 }
@@ -409,3 +409,42 @@ function contactSubmitCheck() {
     }
 
 }
+
+function msgShow(msgElem, msgType, msgText) {
+
+    switch (msgType) {
+        case "error":
+            msgElem.removeClass("alert alert-dismissible alert-success p-3");
+            msgElem.addClass("text-danger alert alert-dismissible alert-danger p-3");
+            break;
+        case "success":
+            msgElem.removeClass("text-danger alert alert-dismissible alert-danger p-3");
+            msgElem.addClass("alert alert-dismissible alert-success p-3");
+            break;
+    }
+
+    msgElem.html(msgText);
+}
+
+//reCAPTCHA resize to page
+function scaleCaptcha(elementWidth) {
+    // Width of the reCAPTCHA element, in pixels
+    var reCaptchaWidth = 304;
+    // Get the containing element's width
+    var containerWidth = $('#msgError').width();
+
+    // Only scale the reCAPTCHA if it won't fit
+    // inside the container
+    if (reCaptchaWidth >= containerWidth) {
+        // Calculate the scale
+        var captchaScale = containerWidth / reCaptchaWidth;
+        // Apply the transformation
+        $('.g-recaptcha').css({
+            'transform': 'scale(' + captchaScale + ')'
+        });
+    }
+}
+
+$(window).on('load', function () {
+    console.log($($("#recaptchaBox").children()[0]).css({ 'margin': '0 auto', 'margin-bottom': '5px' }));
+});
