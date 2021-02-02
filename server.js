@@ -20,6 +20,9 @@ app.use(express.static(__dirname + '/public'));
 app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 app.use(bodyParser.json()); // support json encoded bodies
 
+app.use(cookieParser());
+app.use(session({ secret: "Shh, its a secret!" }));
+
 //connect to database
 const { Pool, Client } = require('pg')          // \/-password
 //const connectionString = 'postgressql://postgres:123456@localhost:5432/projectDB'
@@ -36,9 +39,8 @@ var transporter = nodemailer.createTransport({
     port: 587,
     auth: {
         user: emailAdmin,
-        pass: '**'    //************* password for email
+        pass: 'woWOwo6438'    //************* password for email
     }
-
 
 });
 var mailOptions = {
@@ -78,12 +80,12 @@ app.get('/profile', function (req, res) {  //open profile page
 /* -------- post request, pages action */  
 
 app.post('/sign-in', function (req, res) {  //login page post action
-    console.log(req.body);
+
     var { userEmail, userPassword } = req.body;
     var query = parse('select * from users where "Email"= \'%s\'', userEmail);
 
     client.query(query, (err, respond) => {     //query to check user email
-        console.log(respond);
+
         if (respond === undefined || respond.rowCount == 0) {    //user not exist, return error
             res.send({ success: false, error: true, errorUser: true });
             res.end();
@@ -93,7 +95,7 @@ app.post('/sign-in', function (req, res) {  //login page post action
             var user = respond.rows[0];
 
             bcrypt.compare(userPassword, hash).then(function (result) {  //compre with encrypted password
-                console.log(result);
+
                 if (result) {
                     res.send({ success: true, error: false, info: user });
                     res.end();
@@ -109,7 +111,7 @@ app.post('/sign-in', function (req, res) {  //login page post action
 });
 
 app.post('/profile', function (req, res) {  //profile page post action
-    console.log(req.body);
+
     var { userEmail } = req.body;
     var query = parse('select * from users where "Email"= \'%s\'', userEmail);
 
@@ -151,8 +153,7 @@ app.post('/profile-save', function (req, res) {  //profile details save post act
             }
             //update fields, without email, confirm email update in link
             client.query('Update public.users set "Name"=$1, "FamilyName"=$2, "PhoneNumber"=$3, "Country"=$4, "City"=$5, "Street"=$6, "ZipCode"=$7 where "Email"=$8;', [userData.Name, userData.FamilyName, userData.PhoneNumber, userData.Country, userData.City, userData.Street, userData.ZipCode, userData.prevEmail], (err, respond) => {
-                console.log(respond);
-                console.log(err);
+
                 if (respond != undefined && respond.rowCount == 1) {
                     res.send({ success: true, error: false, email: true });
                     res.end();
@@ -166,8 +167,7 @@ app.post('/profile-save', function (req, res) {  //profile details save post act
     }
     else {  //no email change, no mail link sent, update details
         client.query('Update public.users set "Name"=$1, "FamilyName"=$2, "PhoneNumber"=$3, "Country"=$4, "City"=$5, "Street"=$6, "ZipCode"=$7 where "Email"=$8;', [userData.Name, userData.FamilyName, userData.PhoneNumber, userData.Country, userData.City, userData.Street, userData.ZipCode, userData.prevEmail], (err, respond) => {
-            console.log(respond);
-            console.log(err);
+
             if (respond != undefined && respond.rowCount == 1) {
                 res.send({ success: true, error: false, email: false });
                 res.end();
@@ -184,9 +184,6 @@ app.post('/profile-save', function (req, res) {  //profile details save post act
 app.post('/change-password', function (req, res) {  //profile password save post action
     var { userEmail, oldPassword, newPassword } = req.body;
 
-    console.log(userEmail);
-    console.log(oldPassword);
-    console.log(newPassword);
     var query = parse('select * from users where "Email"= \'%s\'', userEmail);
 
     client.query(query, (err, respond) => { //query to check user email
@@ -407,7 +404,7 @@ app.get('/link', function (req, res) {  //link pages post action
                 var { newEmail, prevEmail } = userData;
 
                 client.query('Update public.users set "Email"=$1 where "Email"=$2;', [newEmail, prevEmail], (err, respond) => {
-                    console.log(respond);
+
                     if (respond != undefined && respond.rowCount == 1)
                         res.redirect("/profile?newmail=" + newEmail);
                     else {
